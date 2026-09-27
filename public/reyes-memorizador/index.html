@@ -1,0 +1,2375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memorizador de Reyes y Profetas de Judá e Israel (Gráficos A6-A y A6-B - jw.org)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f6f0;
+      --card-bg: #fffbf2;
+      --text: #2c2523;
+      --text-muted: #6b635b;
+      --juda-color: #8b263e;
+      --juda-light: #fbebee;
+      --juda-border: #dca7b3;
+      --israel-color: #1e5288;
+      --israel-light: #eaf1f8;
+      --israel-border: #9ec1e6;
+      --prophet-color: #2e6b4f;
+      --prophet-light: #e8f4ed;
+      --prophet-border: #9ec8b1;
+      --gold: #b38034;
+      --gold-light: #fef8ee;
+      --border: #e0d7c7;
+      --shadow: 0 10px 25px -5px rgba(44, 37, 35, 0.08), 0 8px 10px -6px rgba(44, 37, 35, 0.04);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 3rem;
+    }
+
+    h1, h2, h3, .serif-title {
+      font-family: 'Cinzel', serif;
+    }
+
+    /* HEADER */
+    header {
+      background: #231e1c;
+      color: #fdfbf7;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      border-bottom: 3px solid var(--gold);
+    }
+    .header-badge {
+      display: inline-block;
+      background: var(--gold);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.75rem;
+      border-radius: 999px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    header h1 {
+      font-size: 1.7rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.35rem;
+    }
+    header p {
+      color: #c9c0b5;
+      font-size: 0.95rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* NAVIGATION TABS */
+    .nav-container {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 0.6rem 1.25rem;
+      border-radius: 999px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      background: #f4eee2;
+      color: var(--text);
+    }
+    .tab-btn.active {
+      background: #231e1c;
+      color: #fff;
+      border-color: #231e1c;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    /* MAIN CONTAINER */
+    main {
+      max-width: 1200px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+
+    .view-container {
+      display: none;
+    }
+    .view-container.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* FILTERS */
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted);
+    }
+    .filter-chip:hover {
+      border-color: #999;
+      color: var(--text);
+    }
+    .filter-chip.active-all {
+      background: #2c2523;
+      color: #fff;
+      border-color: #2c2523;
+    }
+    .filter-chip.active-juda {
+      background: var(--juda-color);
+      color: #fff;
+      border-color: var(--juda-color);
+    }
+    .filter-chip.active-israel {
+      background: var(--israel-color);
+      color: #fff;
+      border-color: var(--israel-color);
+    }
+    .filter-chip.active-prophets {
+      background: var(--prophet-color);
+      color: #fff;
+      border-color: var(--prophet-color);
+    }
+    .filter-chip.active-part {
+      background: var(--gold);
+      color: #fff;
+      border-color: var(--gold);
+    }
+
+    /* FLASHCARD 3D SCENE */
+    .flashcard-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .card-scene {
+      width: 100%;
+      max-width: 580px;
+      height: 640px;
+      perspective: 1200px;
+      cursor: pointer;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: left;
+      transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .card-inner.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 2px solid #e7e2d7;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .card-back {
+      transform: rotateY(180deg);
+      background: #fffcf8;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .card-header-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+    .bg-juda { background: var(--juda-color); }
+    .bg-israel { background: var(--israel-color); }
+    .bg-prophet { background: var(--prophet-color); }
+
+    .card-image-container {
+      width: 100%;
+      height: 350px;
+      background: #f4eee2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-image-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: transform 0.3s ease;
+    }
+    .card-image-container:hover img {
+      transform: scale(1.02);
+    }
+
+    .card-body-front {
+      padding: 1.25rem;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .king-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .king-reign {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--gold);
+      margin-top: 0.2rem;
+    }
+    .mnemonic-box {
+      margin-top: 0.75rem;
+      background: #fdf6e7;
+      border: 1px dashed #d97706;
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #92400e;
+    }
+    .flip-hint {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+
+    /* CARD BACK STYLING */
+    .card-back h3 {
+      font-size: 1.35rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .meta-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .meta-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: #eee;
+    }
+    .status-good { background: #d1fae5; color: #065f46; }
+    .status-bad { background: #fee2e2; color: #991b1b; }
+    .status-mixed { background: #fef3c7; color: #92400e; }
+
+    .back-section {
+      margin-bottom: 1rem;
+    }
+    .back-section strong {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.25rem;
+    }
+    .scripture-quote {
+      background: #f4efe6;
+      border-left: 3px solid var(--gold);
+      padding: 0.5rem 0.75rem;
+      font-style: italic;
+      font-size: 0.9rem;
+      color: #443c37;
+      border-radius: 0 6px 6px 0;
+    }
+
+    /* CARD CONTROLS */
+    .card-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+    .btn-ctrl {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 0.65rem 1.25rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+    .btn-ctrl:hover:not(:disabled) {
+      background: #2c2523;
+      color: #fff;
+      border-color: #2c2523;
+    }
+    .btn-ctrl:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .card-counter {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      min-width: 80px;
+      text-align: center;
+    }
+
+    /* TIMELINE VIEW */
+    .timeline-wrapper {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .timeline-header-cols {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    .timeline-row {
+      display: grid;
+      grid-template-columns: 1fr 120px 1fr;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #f0e9dc;
+      gap: 0.5rem;
+    }
+    .timeline-row.event-row {
+      grid-template-columns: 1fr;
+      background: #fdf2f2;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      text-align: center;
+      font-weight: 700;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+    .timeline-row.event-row.event-fall {
+      background: #1e1b18;
+      color: #fef08a;
+      border: 1px solid #ca8a04;
+    }
+    .time-badge {
+      background: #f3ede2;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .king-pill {
+      padding: 0.55rem 0.85rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .king-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+    .king-pill-juda {
+      background: var(--juda-light);
+      border: 1px solid var(--juda-border);
+      color: var(--juda-color);
+    }
+    .king-pill-israel {
+      background: var(--israel-light);
+      border: 1px solid var(--israel-border);
+      color: var(--israel-color);
+    }
+    .king-pill-prophet {
+      background: var(--prophet-light);
+      border: 1px solid var(--prophet-border);
+      color: var(--prophet-color);
+    }
+    .pill-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .num-juda { background: var(--juda-color); }
+    .num-israel { background: var(--israel-color); }
+    .num-prophet { background: var(--prophet-color); }
+
+    /* GALLERY VIEW */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.25rem;
+    }
+    .gallery-card {
+      background: #fff;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .gallery-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+      border-color: var(--gold);
+    }
+    .gallery-card-img {
+      width: 100%;
+      height: 220px;
+      background: #f4eee2;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .gallery-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .gallery-card-info {
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .gallery-card-info h4 {
+      font-size: 1.05rem;
+      margin-bottom: 0.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* QUIZ VIEW */
+    .quiz-box {
+      max-width: 650px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .quiz-q-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .quiz-question {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+    }
+    .quiz-options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .quiz-btn {
+      background: #fdfbf7;
+      border: 2px solid var(--border);
+      padding: 0.85rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+    .quiz-btn:hover:not(:disabled) {
+      border-color: var(--gold);
+      background: #fff;
+    }
+    .quiz-btn.correct {
+      background: #d1fae5;
+      border-color: #10b981;
+      color: #065f46;
+      font-weight: 700;
+    }
+    .quiz-btn.wrong {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #991b1b;
+      font-weight: 700;
+    }
+    .quiz-feedback {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      min-height: 24px;
+      margin-bottom: 1rem;
+    }
+    .quiz-img {
+      max-height: 180px;
+      margin: 0 auto 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(20, 16, 15, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 1rem;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: #fff;
+      max-width: 600px;
+      width: 100%;
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: #eee;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .timeline-header-cols, .timeline-row {
+        grid-template-columns: 1fr 80px 1fr;
+        font-size: 0.8rem;
+      }
+      .card-scene {
+        height: 580px;
+      }
+      .card-image-container {
+        height: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-badge">JW.ORG • BIBLIA DE ESTUDIO (APÉNDICES A6-A Y A6-B)</div>
+    <h1>Reyes y Profetas de Judá e Israel</h1>
+    <p>Secuencia mnemotécnica ilustrada, sincronía bíblica y hechos históricos para memorizar los 20 reyes de Judá, 19 reyes de Israel y 15 profetas.</p>
+  </header>
+
+  <nav class="nav-container">
+    <button class="tab-btn active" onclick="switchTab('flashcards')">🃏 Fichas Mnemotécnicas (54)</button>
+    <button class="tab-btn" onclick="switchTab('parallel')">📜 Cuadro Paralelo y Cronología</button>
+    <button class="tab-btn" onclick="switchTab('gallery')">🖼️ Galería Completa</button>
+    <button class="tab-btn" onclick="switchTab('quiz')">🎯 Test de Memorización</button>
+  </nav>
+
+  <main>
+    <!-- VISTA 1: FICHAS MNEMOTÉCNICAS -->
+    <section id="view-flashcards" class="view-container active">
+      <div class="flashcard-wrapper">
+        <div class="filter-bar">
+          <button class="filter-chip active-all" id="filter-all" onclick="filterKingdom('all')">Todos (54)</button>
+          <button class="filter-chip" id="filter-part1" onclick="filterKingdom('part1')">Parte 1: A6-A (28)</button>
+          <button class="filter-chip" id="filter-part2" onclick="filterKingdom('part2')">Parte 2: A6-B (26)</button>
+          <button class="filter-chip" id="filter-juda" onclick="filterKingdom('juda')">Reino de Judá (20)</button>
+          <button class="filter-chip" id="filter-israel" onclick="filterKingdom('israel')">Reino de Israel (19)</button>
+          <button class="filter-chip" id="filter-prophets" onclick="filterKingdom('prophets')">Profetas (15)</button>
+        </div>
+
+        <div class="card-scene">
+          <div class="card-inner" id="flashcard" onclick="flipCurrentCard()">
+            <!-- Frente -->
+            <div class="card-face card-front">
+              <div class="card-header-badge" id="card-badge">
+                <span id="card-kingdom-label">REINO DE JUDÁ (SUR)</span>
+                <span id="card-number-badge">REY #1</span>
+              </div>
+              <div class="card-image-container">
+                <img id="card-img" src="" alt="Ilustración Mnemotécnica">
+              </div>
+              <div class="card-body-front">
+                <div class="king-title" id="card-name">Rehoboam</div>
+                <div class="king-reign" id="card-reign">17 años (997–980 a.e.c.)</div>
+                <div class="mnemonic-box" id="card-mnemonic">
+                  💡 <strong>Clave Mnemotécnica:</strong> <span id="card-mnemonic-text">Carga el yugo pesado y látigos para azotar al pueblo.</span>
+                </div>
+                <div class="flip-hint">👆 Haz clic en la ficha para ver notas de estudio y textos bíblicos (jw.org)</div>
+              </div>
+            </div>
+
+            <!-- Reverso -->
+            <div class="card-face card-back">
+              <div class="meta-tag-list" id="card-tags">
+                <span class="meta-tag" id="tag-reign-status">Infiel</span>
+                <span class="meta-tag" id="tag-dates">997–980 a.e.c.</span>
+                <span class="meta-tag" id="tag-prophet">Profeta: Semaya</span>
+              </div>
+              <h3 id="back-king-title">Rehoboam de Judá</h3>
+              
+              <div class="back-section">
+                <strong>📖 Textos Bíblicos Clave:</strong>
+                <p class="scripture-quote" id="back-scriptures">1 Reyes 14:21-31; 2 Crónicas 10–12</p>
+              </div>
+
+              <div class="back-section">
+                <strong>🏛️ Contexto e Historia Bíblica (jw.org):</strong>
+                <p id="back-history"></p>
+              </div>
+
+              <div class="back-section" id="back-contemp-box" style="background:#f0f7ff; border:1px solid #bfdbfe; border-radius:8px; padding:0.65rem 0.9rem; margin-bottom:0.75rem;">
+                <strong id="back-contemp-title" style="color:#1e40af; display:block; margin-bottom:4px;">📜 Profetas Contemporáneos:</strong>
+                <p id="back-contemp-text" style="color:#1e3a8a; font-weight:600; font-size:0.92rem; margin:0; line-height:1.45;"></p>
+              </div>
+
+              <div class="back-section">
+                <strong>🧠 Truco para Memorizar la Secuencia:</strong>
+                <p id="back-memory-trick"><strong>#1 de Judá:</strong> Primer hijo de Salomón. Piensa en la "R" de <em>Rudo</em> y <em>Rehoboam</em> con el yugo pesado.</p>
+              </div>
+
+              <div class="flip-hint" style="margin-top:auto;">👆 Haz clic para volver a la ilustración</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-controls">
+          <button class="btn-ctrl" id="prev-btn" onclick="prevCard()">⬅️ Anterior</button>
+          <button class="btn-ctrl" onclick="flipCurrentCard()">🔄 Girar Ficha</button>
+          <span class="card-counter" id="counter-label">1 / 54</span>
+          <button class="btn-ctrl" id="next-btn" onclick="nextCard()">Siguiente ➡️</button>
+        </div>
+
+        <div style="margin-top: 1.25rem; text-align:center; width:100%; max-width:750px;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.6rem;">
+            ACCESO RÁPIDO A TODAS LAS FICHAS:
+          </div>
+          <div id="card-quick-selector" style="display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; max-height:160px; overflow-y:auto; padding:0.5rem; background:#eee9df; border-radius:12px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 2: CUADRO PARALELO CRONOLÓGICO -->
+    <section id="view-parallel" class="view-container">
+      <div class="timeline-wrapper">
+        <h2 style="text-align: center; margin-bottom: 0.5rem;">Sincronía Paralela de Reyes y Profetas (Gráficos A6-A y A6-B)</h2>
+        <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Línea de tiempo correlacionada desde la división del reino en 997 a.e.c. hasta la caída de Samaria en 740 a.e.c. y la caída de Jerusalén en 607 a.e.c.
+        </p>
+
+        <div class="timeline-header-cols">
+          <div style="color: var(--juda-color);">👑 REINO DE JUDÁ (Sur)</div>
+          <div style="color: #666;">AÑO A.E.C. / HITOS</div>
+          <div style="color: var(--israel-color);">👑 REINO DE ISRAEL (Norte)</div>
+        </div>
+
+        <div id="timeline-rows-container">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 3: GALERÍA COMPLETA -->
+    <section id="view-gallery" class="view-container">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <h2>Galería de Tarjetas Mnemotécnicas</h2>
+          <div style="font-size:0.9rem; color:var(--text-muted);">Haz clic en cualquier tarjeta para abrir su ficha completa de estudio</div>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input type="text" id="gallery-search" placeholder="🔍 Buscar rey, profeta o pista..." style="padding:0.55rem 1rem; border-radius:999px; border:1px solid var(--border); font-size:0.9rem; width:260px;" oninput="filterGallery()">
+        </div>
+      </div>
+
+      <div class="filter-bar" style="justify-content:flex-start; margin-bottom:1.5rem;">
+        <button class="filter-chip active-all" id="gal-filter-all" onclick="filterGalleryKingdom('all')">Todos (54)</button>
+        <button class="filter-chip" id="gal-filter-part1" onclick="filterGalleryKingdom('part1')">Parte 1 (28)</button>
+        <button class="filter-chip" id="gal-filter-part2" onclick="filterGalleryKingdom('part2')">Parte 2 (26)</button>
+        <button class="filter-chip" id="gal-filter-juda" onclick="filterGalleryKingdom('juda')">Judá (20)</button>
+        <button class="filter-chip" id="gal-filter-israel" onclick="filterGalleryKingdom('israel')">Israel (19)</button>
+        <button class="filter-chip" id="gal-filter-prophets" onclick="filterGalleryKingdom('prophets')">Profetas (15)</button>
+      </div>
+
+      <div class="gallery-grid" id="gallery-container">
+        <!-- Generado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- VISTA 4: QUIZ INTERACTIVO -->
+    <section id="view-quiz" class="view-container">
+      <div class="quiz-box">
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:0.85rem; font-weight:700; color:var(--text-muted); margin-bottom:0.4rem;">CATEGORÍA DEL TEST:</div>
+          <div style="display:flex; gap:0.4rem; justify-content:center; flex-wrap:wrap;">
+            <button class="filter-chip active-all" id="quiz-filter-all" onclick="setQuizScope('all')">Todos</button>
+            <button class="filter-chip" id="quiz-filter-juda" onclick="setQuizScope('juda')">Judá</button>
+            <button class="filter-chip" id="quiz-filter-israel" onclick="setQuizScope('israel')">Israel</button>
+            <button class="filter-chip" id="quiz-filter-prophets" onclick="setQuizScope('prophets')">Profetas</button>
+            <button class="filter-chip" id="quiz-filter-part1" onclick="setQuizScope('part1')">Parte 1</button>
+            <button class="filter-chip" id="quiz-filter-part2" onclick="setQuizScope('part2')">Parte 2</button>
+          </div>
+        </div>
+
+        <span class="quiz-q-badge bg-juda" id="quiz-badge">Pregunta de Secuencia</span>
+        <div class="quiz-question" id="quiz-question">¿Quién fue el rey #1 de Judá?</div>
+        <img id="quiz-img" class="quiz-img" src="" style="display:none;" alt="Pista visual">
+        <div class="quiz-options" id="quiz-options">
+          <!-- Opciones dinámicas -->
+        </div>
+        <div class="quiz-feedback" id="quiz-feedback"></div>
+        <button class="btn-ctrl" id="quiz-next-btn" style="margin: 0 auto; display:none;" onclick="loadQuizQuestion()">Siguiente Pregunta ➡️</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL DETALLE -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-card" id="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModalDirect()">×</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script>
+    const KINGS_DATA = [
+      // ==========================================
+      // REINO DE JUDÁ (1 al 20)
+      // ==========================================
+      {
+        id: "J1",
+        num: 1,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Rehoboam",
+        reignYears: "17 años",
+        dates: "997–980 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Semaya",
+        contemporaries: "Semaías (impidió la guerra civil contra Israel, 1 Rey. 12:22-24) y Ahíya de Siló (1 Rey. 11:29).",
+        scriptures: "1 Rey. 14:21-31; 2 Cró. 10–12",
+        image: "images/judah_01_rehoboam_1788994952989.jpg",
+        mnemonicText: "#1 de Judá: Rehoboam = Rudo con el Yugo y látigos; dividió el reino.",
+        history: "Hijo de Salomón y Naamah la amonita. Rechazó el consejo de los ancianos y aumentó la opresión del pueblo ('los castigaré con azotes'). Esto provocó la división de las 10 tribus bajo Jeroboán. Sisac de Egipto saqueó el templo en su 5.° año."
+      },
+      {
+        id: "J2",
+        num: 2,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Abías (Abiyam)",
+        reignYears: "3 años",
+        dates: "980–978 a.e.c.",
+        status: "Mixto / No íntegro",
+        statusClass: "status-mixed",
+        prophet: "Iddo",
+        contemporaries: "Iddo el profeta y visionario (registró las crónicas y genealogías de Abías, 2 Cró. 13:22).",
+        scriptures: "2 Cró. 13:1-20; 1 Rey. 15:1-8",
+        image: "images/judah_02_abias_1788994968374.jpg",
+        mnemonicText: "#2 de Judá: Abías = Alza la voz en el monte Zemaraim en sus 3 años.",
+        history: "Subió al monte Zemaraim y reprendió a Jeroboán por sus becerros de oro. Con 400.000 hombres venció milagrosamente a 800.000 de Israel porque Judá confió en Jehová. No obstante, toleró la idolatría de su padre."
+      },
+      {
+        id: "J3",
+        num: 3,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Asá",
+        reignYears: "41 años",
+        dates: "978–937 a.e.c.",
+        status: "Fiel (con tropiezos al final)",
+        statusClass: "status-good",
+        prophet: "Azarías y Hananí",
+        contemporaries: "Azarías hijo de Oded (animó la reforma espiritual, 2 Cró. 15:1-8) y Hananí el vidente (reprendió a Asá por aliarse con Siria, 2 Cró. 16:7-10).",
+        scriptures: "1 Rey. 15:9-24; 2 Cró. 14–16",
+        image: "images/judah_03_asa_1788994980708.jpg",
+        mnemonicText: "#3 de Judá: Asá = Aplasta ídolos durante 41 años (vendó sus pies enfermos).",
+        history: "Valiente purga contra la idolatría; quitó a su abuela Maacá por hacer un ídolo obsceno. Derrotó al etíope Zérah y su millón de soldados. En su vejez pactó con Siria y al enfermar de los pies buscó a médicos antes que a Jehová."
+      },
+      {
+        id: "J4",
+        num: 4,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Jehosafat",
+        reignYears: "25 años",
+        dates: "937–913 a.e.c.",
+        status: "Fiel",
+        statusClass: "status-good",
+        prophet: "Jehú hijo de Hananí, Eliezer",
+        contemporaries: "Jehú hijo de Hananí (reprendió su alianza con Acab, 2 Cró. 19:2), Jahaziel el levita (profetizó victoria sin luchar en En-guedí, 2 Cró. 20:14-17) y Eliezer (profetizó contra sus naves con Ocozías de Israel, 2 Cró. 20:37).",
+        scriptures: "1 Rey. 22:41-50; 2 Cró. 17–20",
+        image: "images/judah_04_jehosafat_1788994993357.jpg",
+        mnemonicText: "#4 de Judá: Jehosafat = Juntos con el rollo de la Ley y cantores al frente.",
+        history: "Envió sacerdotes y levitas con el libro de la Ley por todas las ciudades para educar al pueblo. Victoria milagrosa con cantores al frente alabando a Dios. Su error fue la alianza matrimonial con Acab de Israel."
+      },
+      {
+        id: "J5",
+        num: 5,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Jehoram",
+        reignYears: "8 años",
+        dates: "913–c. 906 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Elías (carta escrita)",
+        contemporaries: "Elías el profeta (le envió un escrito profético de juicio anunciando enfermedad mortal en las entrañas, 2 Cró. 21:12-15).",
+        scriptures: "2 Rey. 8:16-24; 2 Cró. 21",
+        image: "images/judah_05_jehoram_1788995005085.jpg",
+        mnemonicText: "#5 de Judá: Jehoram = Justamente herido en los intestinos; carta de Elías.",
+        history: "Hijo de Jehosafat y esposo de Atalía (hija de Acab). Asesinó a sus seis hermanos al asumir el trono. Recibió una carta escrita por el profeta Elías advirtiéndole de su muerte por enfermedad incurable de los intestinos."
+      },
+      {
+        id: "J6",
+        num: 6,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Ocozías",
+        reignYears: "1 año",
+        dates: "c. 906–c. 905 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Eliseo (comisionó a Jehú)",
+        contemporaries: "Eliseo (sirviendo en el reino norteño de Israel durante el único año de reinado de Ocozías en Judá).",
+        scriptures: "2 Rey. 8:25–9:29; 2 Cró. 22:1-9",
+        image: "images/judah_06_ocozias_1788995018635.jpg",
+        mnemonicText: "#6 de Judá: Ocozías = Ocurrido en 1 año; alcanzado por la flecha de Jehú.",
+        history: "Hijo de Jehoram y Atalía. Siguió el mal ejemplo de la casa de Acab por consejo de su madre. Cuando visitaba al herido rey Jehoram de Israel en Jezreel, Jehú lo alcanzó y lo hirió mortalmente en su carroza."
+      },
+      {
+        id: "J7",
+        num: 7,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Reina Atalía",
+        reignYears: "6 años",
+        dates: "c. 905–898 a.e.c.",
+        status: "Usurpadora infiel",
+        statusClass: "status-bad",
+        prophet: "Jehoiada el sumo sacerdote",
+        contemporaries: "Eliseo (profetizando y obrando milagros en Israel durante la usurpación de Atalía en Judá; el sumo sacerdote Jehoiada lideró la restauración).",
+        scriptures: "2 Rey. 11:1-20; 2 Cró. 22:10–23:15",
+        image: "images/judah_07_atalia_1788995033030.jpg",
+        mnemonicText: "#7 de Judá: Atalía = Asesina de los herederos reales; rasgó su ropa gritando '¡Conspiración!'.",
+        history: "Hija de Acab y Jezabel. Al morir Ocozías, intentó aniquilar a toda la descendencia real para usurpar el trono. Gobernó 6 años de tiranía idólatra hasta que Jehoiada proclamó al niño Jehoás y la ejecutó."
+      },
+      {
+        id: "J8",
+        num: 8,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Jehoás",
+        reignYears: "40 años",
+        dates: "898–858 a.e.c.",
+        status: "Mixto (Fiel mientras vivió Jehoiada)",
+        statusClass: "status-mixed",
+        prophet: "Zacarías hijo de Jehoiada",
+        contemporaries: "Zacarías hijo del sumo sacerdote Jehoiada (martirizado y apedreado en el patio del templo por orden de Jehoás, 2 Cró. 24:20-22). Posiblemente Joel.",
+        scriptures: "2 Rey. 12; 2 Cró. 24",
+        image: "images/judah_08_jehoas_1788995051018.jpg",
+        mnemonicText: "#8 de Judá: Jehoás = Joven de 7 años; cofre de contribuciones y mandó matar a Zacarías.",
+        history: "Salvado de bebé y coronado a los 7 años. Reparó el templo estableciendo el cofre de contribución. Pero tras morir Jehoiada, escuchó a los príncipes idólatras y mandó apedrear al profeta Zacarías."
+      },
+      {
+        id: "J9",
+        num: 9,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Amasías",
+        reignYears: "29 años",
+        dates: "858–829 a.e.c.",
+        status: "Mixto (No con corazón completo)",
+        statusClass: "status-mixed",
+        prophet: "Profeta anónimo de Jehová",
+        contemporaries: "Un hombre de Dios innominado (le mandó despedir 100.000 mercenarios de Israel, 2 Cró. 25:7-9) y otro profeta de Jehová que lo reprendió por adorar ídolos de Edom (2 Cró. 25:15-16). Posiblemente Joel.",
+        scriptures: "2 Rey. 14:1-22; 2 Cró. 25",
+        image: "images/judah_09_amasias_1788995067050.jpg",
+        mnemonicText: "#9 de Judá: Amasías = Adoró los ídolos de Edom que él mismo derrotó; 29 años.",
+        history: "Venció a los edomitas en el valle de la Sal, pero absurdamente se llevó sus dioses y se inclinó ante ellos. Desafió con arrogancia a Jehoás de Israel y fue humillado en Bet-semes, rompiendo 400 codos del muro de Jerusalén."
+      },
+      {
+        id: "J10",
+        num: 10,
+        part: 1,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Uzías (Azarías)",
+        reignYears: "52 años",
+        dates: "829–777 a.e.c.",
+        status: "Fiel al inicio / Leproso por altivez",
+        statusClass: "status-mixed",
+        prophet: "Zacarías (instructor), Isaías, Oseas, Amós",
+        contemporaries: "Isaías (comenzó su ministerio en su último año, Isa. 1:1; 6:1), Oseas (Os. 1:1) y Amós (Am. 1:1, dos años antes del gran terremoto). Zacarías maestro en el temor de Dios (2 Cró. 26:5).",
+        scriptures: "2 Rey. 15:1-7; 2 Cró. 26",
+        image: "images/judah_10_uzias_1788995081627.jpg",
+        mnemonicText: "#10 de Judá: Uzías = Usurpó el incensario en el templo; brotó lepra en su frente.",
+        history: "Reinó 52 años. Gran prosperidad militar, agrícola e ingeniería. Pero 'tan pronto como se hizo fuerte, su corazón se hizo altivo': entró presuntuosamente al Santo del templo a quemar incienso y quedó leproso hasta morir."
+      },
+      {
+        id: "J11",
+        num: 11,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Jotán",
+        reignYears: "16 años",
+        dates: "777–762 a.e.c.",
+        status: "Fiel",
+        statusClass: "status-good",
+        prophet: "Isaías, Oseas, Miqueas",
+        contemporaries: "Isaías (Isa. 1:1), Oseas (Os. 1:1) y Miqueas (Miq. 1:1).",
+        scriptures: "2 Rey. 15:32-38; 2 Cró. 27",
+        image: "images/judah_11_jotan_card.jpg",
+        mnemonicText: "#11 de Judá: Jotán = Justo constructor de la puerta superior y murallas; no usurpó el santuario.",
+        history: "Hijo de Uzías. Hizo lo recto ante Jehová y fortaleció las defensas de Jerusalén (muralla de Ófel y ciudades fortificadas). Sometió a los amonitas cobrándoles tributo de 100 talentos de plata durante tres años."
+      },
+      {
+        id: "J12",
+        num: 12,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Acaz",
+        reignYears: "16 años",
+        dates: "762–746 a.e.c.",
+        status: "Muy infiel",
+        statusClass: "status-bad",
+        prophet: "Isaías, Miqueas",
+        contemporaries: "Isaías (le ofreció la señal de Emanuel en Isa. 7), Oseas (Os. 1:1), Miqueas (Miq. 1:1) y Oded (profeta en Samaria que intervino por 200.000 cautivos de Judá, 2 Cró. 28:9).",
+        scriptures: "2 Rey. 16; 2 Cró. 28; Isaías 7",
+        image: "images/judah_12_acaz_card.jpg",
+        mnemonicText: "#12 de Judá: Acaz = Altar pagano copiado de Damasco; sacrificó a sus hijos y cerró las puertas del templo.",
+        history: "Uno de los peores reyes de Judá. Copió un altar pagano de Damasco, quemó a sus hijos a Mólek en el valle de Hinón y cerró las puertas del templo de Jehová. Rechazó la señal de Emmanuel ofrecida por Isaías."
+      },
+      {
+        id: "J13",
+        num: 13,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Ezequías",
+        reignYears: "29 años",
+        dates: "746–716 a.e.c.",
+        status: "Sobresalientemente fiel",
+        statusClass: "status-good",
+        prophet: "Isaías, Miqueas",
+        contemporaries: "Isaías (su consejero espiritual y portavoz de Jehová en la derrota de Senaquerib, 2 Rey. 19:2), Miqueas (Miq. 1:1; Jer. 26:18) y Oseas (Os. 1:1).",
+        scriptures: "2 Rey. 18–20; 2 Cró. 29–32; Isaías 36–39",
+        image: "images/judah_13_ezequias_card.jpg",
+        mnemonicText: "#13 de Judá: Ezequías = Extendió las cartas de Senaquerib en el templo; 185.000 asirios abatidos y túnel de Siloé.",
+        history: "Reabrió y purificó el templo en su primer mes. Destrozó la serpiente de cobre adorada como ídolo. Cuando el rey asirio Senaquerib sitió Jerusalén con blasfemias, oró en el templo y el ángel de Jehová fulminó a 185.000 asirios en una sola noche. Construyó el célebre túnel de Siloé."
+      },
+      {
+        id: "J14",
+        num: 14,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Manasés",
+        reignYears: "55 años",
+        dates: "716–661 a.e.c.",
+        status: "Infiel / Profundamente arrepentido",
+        statusClass: "status-mixed",
+        prophet: "Profetas anónimos de Jehová",
+        contemporaries: "Videntes y profetas de Jehová no nombrados (advirtieron la calamidad sobre Jerusalén, 2 Rey. 21:10-15; 2 Cró. 33:18) y probablemente Nahúm.",
+        scriptures: "2 Rey. 21:1-18; 2 Cró. 33:1-20",
+        image: "images/judah_14_manases_card.jpg",
+        mnemonicText: "#14 de Judá: Manasés = Maniatado con garfios en Babilonia; 55 años de reinado y lágrimas de arrepentimiento.",
+        history: "Hijo de Ezequías. Reinó 55 años (el más largo). Derramó sangre inocente en gran cantidad y promovió la magia y el espiritismo. Llevado a Babilonia atado con garfios de bronce, se humilló profundamente, suplicó perdón a Jehová y fue restaurado al trono, purgando los ídolos."
+      },
+      {
+        id: "J15",
+        num: 15,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Amón",
+        reignYears: "2 años",
+        dates: "661–659 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Sofonías (temprano)",
+        contemporaries: "Videntes y profetas de Judá (2 Cró. 33:18-19).",
+        scriptures: "2 Rey. 21:19-26; 2 Cró. 33:21-25",
+        image: "images/judah_15_amon_card.jpg",
+        mnemonicText: "#15 de Judá: Amón = Aumentó la culpa y no se humilló; asesinado en su casa tras 2 años.",
+        history: "Hijo de Manasés. Reanudó la idolatría idéntica a los peores años de su padre y no se humilló ante Jehová. Sus propios siervos conspiraron contra él y lo mataron en su propia casa tras solo 2 años."
+      },
+      {
+        id: "J16",
+        num: 16,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Josías",
+        reignYears: "31 años",
+        dates: "659–628 a.e.c.",
+        status: "Excepcionalmente fiel",
+        statusClass: "status-good",
+        prophet: "Jeremías, Sofonías, profetisa Huldá",
+        contemporaries: "Sofonías (Sof. 1:1), Jeremías (comisionado en su 13.er año, Jer. 1:1-2) y la profetisa Huldá (consultada tras hallar el libro de la Ley, 2 Rey. 22:14-20).",
+        scriptures: "2 Rey. 22–23; 2 Cró. 34–35",
+        image: "images/judah_16_josias_card.jpg",
+        mnemonicText: "#16 de Judá: Josías = Joven rey que rasgó sus vestiduras al hallar el libro de la Ley de Moisés.",
+        history: "Comenzó a reinar a los 8 años. A los 16 buscó a Dios y a los 20 limpió el país de idolatría. Al reparar el templo se halló el 'Libro de la Ley'. Al escucharlo rasgó sus ropas de dolor y celebró la Pascua más solemne desde los días de Samuel. Murió en Meguido."
+      },
+      {
+        id: "J17",
+        num: 17,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Jehoacaz (Salum)",
+        reignYears: "3 meses",
+        dates: "628 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Jeremías",
+        contemporaries: "Jeremías (profetizó bajo el nombre de Salum que moriría cautivo en Egipto y no regresaría jamás, Jer. 22:10-12).",
+        scriptures: "2 Rey. 23:31-34; Jeremías 22:10-12",
+        image: "images/judah_17_jehoacaz_card.jpg",
+        mnemonicText: "#17 de Judá: Jehoacaz = 3 meses de reinado; encadenado y llevado cautivo a Egipto por el Faraón Nekó.",
+        history: "Hijo de Josías (también llamado Salum). Gobernó solo tres meses. El faraón Nekó lo apresó en Riblá, le impuso una multa a Judá y se llevó a Jehoacaz cautivo a Egipto, donde murió."
+      },
+      {
+        id: "J18",
+        num: 18,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Jehoiaquim (Eliaquim)",
+        reignYears: "11 años",
+        dates: "628–618 a.e.c.",
+        status: "Infiel / Tirano",
+        statusClass: "status-bad",
+        prophet: "Jeremías, Habacuc, Urías",
+        contemporaries: "Jeremías (a quien quemó el rollo en el brasero, Jer. 36), Habacuc (Hab. 1:1) y Urías hijo de Semaya (a quien Jehoiaquim mandó degollar, Jer. 26:20-23).",
+        scriptures: "2 Rey. 23:34–24:7; Jeremías 22:13-19; 36",
+        image: "images/judah_18_jehoiaquim_card.jpg",
+        mnemonicText: "#18 de Judá: Jehoiaquim = Cortó con cortaplumas el rollo de Jeremías y lo arrojó al brasero.",
+        history: "Hermano de Jehoacaz, impuesto por Nekó. Rey codicioso y opresor. Cuando el rollo dictado por Jeremías fue leído ante él, lo cortó hoja tras hoja con el cortaplumas del secretario y lo arrojó al fuego del brasero de invierno. Murió durante el asedio babilonio."
+      },
+      {
+        id: "J19",
+        num: 19,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Jehoiaquín (Conías/Jeconías)",
+        reignYears: "3 meses, 10 días",
+        dates: "618–617 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Jeremías, Ezequiel",
+        contemporaries: "Jeremías (profetizó que Conías sería entregado a Nabucodonosor sin descendiente en el trono, Jer. 22:24-30) y Ezequiel (deportado con él en 617 a.e.c., Eze. 1:1-2).",
+        scriptures: "2 Rey. 24:8-17; 25:27-30; 2 Cró. 36:9-10",
+        image: "images/judah_19_jehoiaquin_card.jpg",
+        mnemonicText: "#19 de Judá: Jehoiaquín = 3 meses y 10 días; entregó la corona a Nabucodonosor y deportado a Babilonia.",
+        history: "Hijo de Jehoiaquim. Nabucodonosor sitió Jerusalén y Jehoiaquín capituló saliendo con la familia real. Fue llevado cautivo a Babilonia junto con Daniel y Ezequiel. Estuvo encarcelado 37 años hasta ser liberado por Evil-merodac."
+      },
+      {
+        id: "J20",
+        num: 20,
+        part: 2,
+        kingdom: "Judá",
+        kingdomSide: "Sur (2 tribus)",
+        name: "Sedequías (Matanías)",
+        reignYears: "11 años",
+        dates: "617–607 a.e.c.",
+        status: "Infiel (Último rey de Judá)",
+        statusClass: "status-bad",
+        prophet: "Jeremías, Ezequiel",
+        contemporaries: "Jeremías (le aconsejó rendirse a los babilonios para salvar la ciudad, Jer. 38), Ezequiel (profetizando desde Babilonia que Sedequías sería cegado, Eze. 12:13) y Habacuc.",
+        scriptures: "2 Rey. 24:18–25:21; 2 Cró. 36:11-21; Jeremías 39; 52",
+        image: "images/judah_20_sedequias_card.jpg",
+        mnemonicText: "#20 de Judá: Sedequías = El último rey ciego y encadenado tras la destrucción de Jerusalén y el templo en 607 a.e.c.",
+        history: "Último rey davídico en el trono de Jerusalén. Rompió su juramento con Babilonia apoyándose en Egipto. En 607 a.e.c. los babilonios tomaron la ciudad, degollaron a sus hijos ante él, le vaciaron los ojos, lo encadenaron y quemaron el templo de Jehová."
+      },
+
+      // ==========================================
+      // REINO DE ISRAEL (1 al 19)
+      // ==========================================
+      {
+        id: "I1",
+        num: 1,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Jeroboán I",
+        reignYears: "22 años",
+        dates: "997–c. 976 a.e.c.",
+        status: "Infiel (Fundador de la apostasía)",
+        statusClass: "status-bad",
+        prophet: "Ahíya de Siló",
+        contemporaries: "Ahíya de Siló (rasgó su manto en 12 pedazos dándole 10, 1 Rey. 11:29-39; 14:1-18) y el profeta innominado de Judá que profetizó contra el altar de Betel (1 Rey. 13).",
+        scriptures: "1 Rey. 11:26–14:20",
+        image: "images/israel_01_jeroboan_1788995096465.jpg",
+        mnemonicText: "#1 de Israel: Jeroboán = Becerros de oro en Dan y Betel. Hizo pecar a Israel.",
+        history: "Primer rey del norte. Para evitar que el pueblo subiera a Jerusalén, puso dos becerros de oro en Dan y Betel e inventó sacerdotes no levitas, iniciando la apostasía de Israel."
+      },
+      {
+        id: "I2",
+        num: 2,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Nadab",
+        reignYears: "2 años",
+        dates: "c. 976–c. 975 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Ahíya (profecía)",
+        contemporaries: "Cumplimiento de la palabra profética de Ahíya de Siló contra la dinastía de Jeroboán (1 Rey. 15:29-30).",
+        scriptures: "1 Rey. 15:25-31",
+        image: "images/israel_02_nadab_card.jpg",
+        mnemonicText: "#2 de Israel: Nadab = 'No duró nada' (2 años). Asesinado por Baasá en Guibentón.",
+        history: "Hijo de Jeroboán. Continuó la idolatría de su padre. Fue asesinado por Baasá durante el asedio a Guibentón."
+      },
+      {
+        id: "I3",
+        num: 3,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Baasá",
+        reignYears: "24 años",
+        dates: "c. 975–c. 952 a.e.c.",
+        status: "Infiel / Usurpador",
+        statusClass: "status-bad",
+        prophet: "Jehú hijo de Hananí",
+        contemporaries: "Jehú hijo de Hananí (pronunció sentencia de aniquilación total contra la casa de Baasá por imitar a Jeroboán, 1 Rey. 16:1-4).",
+        scriptures: "1 Rey. 15:33–16:7",
+        image: "images/israel_03_baasa_card.jpg",
+        mnemonicText: "#3 de Israel: Baasá = Barrió a la casa de Jeroboán pero imitó su pecado por 24 años.",
+        history: "Exterminó a la familia de Jeroboán. Fortificó Ramá contra Judá. El profeta Jehú anunció la aniquilación de su dinastía."
+      },
+      {
+        id: "I4",
+        num: 4,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Elá",
+        reignYears: "2 años",
+        dates: "c. 952–c. 951 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Jehú hijo de Hananí",
+        contemporaries: "Cumplimiento exacto de la profecía de juicio pronunciada por Jehú hijo de Hananí (1 Rey. 16:11-13).",
+        scriptures: "1 Rey. 16:8-14",
+        image: "images/israel_04_ela_card.jpg",
+        mnemonicText: "#4 de Israel: Elá = Se embriagaba en Tirzá y fue asesinado ebrio tras 2 años.",
+        history: "Hijo de Baasá. Mientras el ejército combatía, él se embriagaba en casa de su mayordomo Arzaba y fue asesinado por Zimrí."
+      },
+      {
+        id: "I5",
+        num: 5,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Zimrí",
+        reignYears: "7 días",
+        dates: "c. 951 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Juicio cumplido",
+        contemporaries: "Cumplimiento de las sentencias proféticas contra los reyes idólatras de Israel (1 Rey. 16:18-20).",
+        scriptures: "1 Rey. 16:15-20",
+        image: "images/israel_05_zimri_1788995111690.jpg",
+        mnemonicText: "#5 de Israel: Zimrí = Siete días de reinado; se quemó vivo con el palacio en llamas.",
+        history: "Comandante de carros que usurpó el trono. Al ser sitiado por Omrí en Tirzá, entró a la torre del palacio real y le prendió fuego sobre sí mismo."
+      },
+      {
+        id: "I6",
+        num: 6,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Omrí y Tibní",
+        reignYears: "12 años",
+        dates: "c. 951–c. 940 a.e.c.",
+        status: "Infiel (Peor que los anteriores)",
+        statusClass: "status-bad",
+        prophet: "Miqueas 6:16 ('los estatutos de Omrí')",
+        contemporaries: "Profetas fieles de Jehová perseguidos en Israel.",
+        scriptures: "1 Rey. 16:21-28",
+        image: "images/israel_06_omri_card.jpg",
+        mnemonicText: "#6 de Israel: Omrí = Compró la colina de Samaria y fundó la capital por dos talentos de plata.",
+        history: "Fundó Samaria como capital tras vencer la guerra civil contra Tibní. Su maldad superó a los reyes previos. Mencionado en la Piedra Moabita."
+      },
+      {
+        id: "I7",
+        num: 7,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Acab",
+        reignYears: "22 años",
+        dates: "c. 940–c. 920 a.e.c.",
+        status: "Muy infiel (Impulsado por Jezabel)",
+        statusClass: "status-bad",
+        prophet: "Elías y Micaya",
+        contemporaries: "Elías el tisbita (fuego en el Carmelo y juicio de la viña de Nabot, 1 Rey. 17–21), Miqueas hijo de Imlá (predijo la muerte de Acab en Ramot de Galaad, 1 Rey. 22:8-28) y profetas innominados (1 Rey. 20:13, 28, 35).",
+        scriptures: "1 Rey. 16:29–22:40",
+        image: "images/israel_07_acab_1788995126680.jpg",
+        mnemonicText: "#7 de Israel: Acab = Asesinó a Nabot por su viña; culto a Baal y flecha al azar.",
+        history: "Casado con la cruel Jezabel; promovió la adoración a Baal a escala nacional. Asesinó a Nabot para quitarle su viña. Elías profetizó su juicio y murió herido por una flecha tirada al azar en Ramot de Galaad."
+      },
+      {
+        id: "I8",
+        num: 8,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Ocozías",
+        reignYears: "2 años",
+        dates: "c. 919–c. 917 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Elías",
+        contemporaries: "Elías el profeta (anunció desde su lecho que moriría por enviar emisarios a consultar a Baal-zebub en Ecrón, 2 Rey. 1:2-17).",
+        scriptures: "1 Rey. 22:51–2 Rey. 1:18",
+        image: "images/israel_08_ocozias_card.jpg",
+        mnemonicText: "#8 de Israel: Ocozías = Cayó por la celosía de su piso alto; consultó a Baal-zebub.",
+        history: "Hijo de Acab. Cayó a través de la celosía de su cámara alta y enfermó gravemente. Envió mensajeros a consultar a Baal-zebub de Ecrón; Elías interceptó a los emisarios y anunció que no se levantaría de su lecho."
+      },
+      {
+        id: "I9",
+        num: 9,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Jehoram",
+        reignYears: "12 años",
+        dates: "c. 917–c. 905 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Eliseo",
+        contemporaries: "Eliseo (realizó milagros ante Jehoram en la guerra contra Moab y durante el asedio sirio de Samaria, 2 Rey. 3:11-19; 6–7) y Elías (al comienzo).",
+        scriptures: "2 Rey. 3:1–9:26",
+        image: "images/israel_09_jehoram_card.jpg",
+        mnemonicText: "#9 de Israel: Jehoram = Atravesado por la flecha de Jehú; arrojado al campo de Nabot.",
+        history: "Hermano de Ocozías. Quitó la columna sagrada de Baal pero mantuvo el culto a los becerros. En Jezreel, Jehú le disparó una flecha que le atravesó el corazón y ordenó tirar su cuerpo en el campo de Nabot."
+      },
+      {
+        id: "I10",
+        num: 10,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Jehú",
+        reignYears: "28 años",
+        dates: "c. 905–c. 876 a.e.c.",
+        status: "Mixto (Ejecutor celoso pero no íntegro)",
+        statusClass: "status-mixed",
+        prophet: "Eliseo (comisión por un profeta joven)",
+        contemporaries: "Eliseo (comisionó a uno de los hijos de los profetas para ungir secretamente a Jehú como rey en Ramot de Galaad, 2 Rey. 9:1-6).",
+        scriptures: "2 Rey. 9–10",
+        image: "images/israel_10_jehu_1788995144683.jpg",
+        mnemonicText: "#10 de Israel: Jehú = Conduce el carro furiosamente como un loco; exterminó a la casa de Acab y los adoradores de Baal.",
+        history: "Ungido para ejecutar el juicio divino contra la casa de Acab. Mató a Jezabel, a los 70 hijos de Acab y erradicó a los adoradores de Baal en Samaria. Sin embargo, no quitó los becerros de oro de Jeroboán."
+      },
+      {
+        id: "I11",
+        num: 11,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Jehoacaz",
+        reignYears: "17 años",
+        dates: "c. 876–c. 859 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Eliseo",
+        contemporaries: "Eliseo (el rey Jehoacaz imploró el favor de Jehová y Eliseo presenció la liberación del yugo sirio, 2 Rey. 13:4-5, 14).",
+        scriptures: "2 Rey. 13:1-9",
+        image: "images/israel_11_jehoacaz_card.jpg",
+        mnemonicText: "#11 de Israel: Jehoacaz = Humillado ante Hazael de Siria; su ejército reducido a polvo.",
+        history: "Hijo de Jehú. Por su idolatría, Jehová permitió que Hazael y Ben-hadad de Siria aplastaran a Israel, dejándole apenas 50 jinetes, 10 carros y 10.000 soldados."
+      },
+      {
+        id: "I12",
+        num: 12,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Jehoás",
+        reignYears: "16 años",
+        dates: "c. 859–c. 844 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Eliseo (última profecía antes de morir)",
+        contemporaries: "Eliseo en su lecho de muerte (hizo disparar la flecha de salvación y reprendió a Jehoás por golpear el suelo solo 3 veces, 2 Rey. 13:14-19).",
+        scriptures: "2 Rey. 13:10-25; 14:8-16",
+        image: "images/israel_12_jehoas_card.jpg",
+        mnemonicText: "#12 de Israel: Jehoás = Golpeó el suelo solo 3 veces con las flechas de Eliseo.",
+        history: "Hijo de Jehoacaz. Lloró ante Eliseo moribundo. Eliseo le mandó golpear el suelo con flechas: golpeó 3 veces y se detuvo, por lo que solo venció a Siria 3 veces. Derrotó a Amasías de Judá en Bet-semes."
+      },
+      {
+        id: "I13",
+        num: 13,
+        part: 1,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Jeroboán II",
+        reignYears: "41 años",
+        dates: "c. 844–c. 803 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Jonás, Amós, Oseas",
+        contemporaries: "Jonás hijo de Amitai (predijo la recuperación de las fronteras norteñas, 2 Rey. 14:25), Amós (Am. 1:1; 7:10) y Oseas (Os. 1:1).",
+        scriptures: "2 Rey. 14:23-29",
+        image: "images/israel_13_jeroboan2_card.jpg",
+        mnemonicText: "#13 de Israel: Jeroboán II = Fronteras restauradas como dijo Jonás, pero sociedad y moral corruptas.",
+        history: "Recuperó fronteras según la profecía de Jonás. Época de lujo material exterior pero denunciada severamente por Amós y Oseas por opresión a los necesitados e hipocresía."
+      },
+      {
+        id: "I14",
+        num: 14,
+        part: 2,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Zacarías",
+        reignYears: "6 meses",
+        dates: "c. 791 a.e.c.",
+        status: "Infiel (Fin de la dinastía de Jehú)",
+        statusClass: "status-bad",
+        prophet: "Amós, Oseas",
+        contemporaries: "Oseas y Amós (cumpliéndose la promesa de Jehová a Jehú de que 4 generaciones se sentarían en el trono de Israel, 2 Rey. 10:30; 15:12).",
+        scriptures: "2 Rey. 15:8-12",
+        image: "images/israel_14_zacarias_card.jpg",
+        mnemonicText: "#14 de Israel: Zacarías = 6 meses de reinado; fin de la dinastía de 4 generaciones de Jehú.",
+        history: "Hijo de Jeroboán II. Último monarca de la dinastía de Jehú, cumpliendo la promesa divina de 4 generaciones (2 Rey. 10:30). Asesinado públicamente por Salum en Ibleam tras solo 6 meses."
+      },
+      {
+        id: "I15",
+        num: 15,
+        part: 2,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Salum",
+        reignYears: "1 mes",
+        dates: "c. 791 a.e.c.",
+        status: "Infiel / Usurpador fugaz",
+        statusClass: "status-bad",
+        prophet: "Oseas",
+        contemporaries: "Oseas (Oseas 1:1).",
+        scriptures: "2 Rey. 15:13-15",
+        image: "images/israel_15_salum_card.jpg",
+        mnemonicText: "#15 de Israel: Salum = Reinó solo 1 mes en Samaria antes de ser liquidado por Menahem.",
+        history: "Conspiró contra Zacarías y usurpó el trono. Su reinado efímero duró exactamente un mes lunar antes de que Menahem subiera desde Tirzá y lo matara en Samaria."
+      },
+      {
+        id: "I16",
+        num: 16,
+        part: 2,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Menahem",
+        reignYears: "10 años",
+        dates: "c. 791–c. 780 a.e.c.",
+        status: "Muy cruel e infiel",
+        statusClass: "status-bad",
+        prophet: "Oseas",
+        contemporaries: "Oseas (advirtió contra la falsa seguridad de pagar sobornos a Pul de Asiria, Os. 5:13; 7:11).",
+        scriptures: "2 Rey. 15:14-22",
+        image: "images/israel_16_menahem_card.jpg",
+        mnemonicText: "#16 de Israel: Menahem = Mil talentos de plata confiscados a los ricos para sobornar al rey de Asiria.",
+        history: "Asoló Tifsah abriendo el vientre a las mujeres encinta. Ante la invasión de Pul (Tiglat-piléser III) de Asiria, extorsionó 1.000 talentos de plata a los hombres ricos de Israel (50 siclos por cabeza) para conservar el trono."
+      },
+      {
+        id: "I17",
+        num: 17,
+        part: 2,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Pecahías",
+        reignYears: "2 años",
+        dates: "c. 780–c. 778 a.e.c.",
+        status: "Infiel",
+        statusClass: "status-bad",
+        prophet: "Oseas",
+        contemporaries: "Oseas (profetizando la rápida inestabilidad política y el colapso moral de Samaria).",
+        scriptures: "2 Rey. 15:23-26",
+        image: "images/israel_17_pecahias_card.jpg",
+        mnemonicText: "#17 de Israel: Pecahías = 2 años de reinado; apuñalado en la torre del palacio por su propio escudero Péqah.",
+        history: "Hijo de Menahem. Continuó la adoración de los becerros de oro. Tras solo dos años, su ayudante o escudero Péqah conspiró con cincuenta galaaditas y lo asesinó en la torre del castillo de Samaria."
+      },
+      {
+        id: "I18",
+        num: 18,
+        part: 2,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Péqah",
+        reignYears: "20 años",
+        dates: "c. 778–c. 758 a.e.c.",
+        status: "Infiel / Guerrero implacable",
+        statusClass: "status-bad",
+        prophet: "Oded, Oseas, Isaías",
+        contemporaries: "Oseas (profetizó durante la pérdida de Galaad y Neftalí) y Oded (profeta en Samaria que liberó a los cautivos de Judá, 2 Cró. 28:9-15).",
+        scriptures: "2 Rey. 15:27-31; 2 Cró. 28:5-15",
+        image: "images/israel_18_peqah_card.jpg",
+        mnemonicText: "#18 de Israel: Péqah = Mató a 120.000 en Judá en un día y perdió Galilea ante el imperio asirio.",
+        history: "Se alió con Rezín de Siria contra Judá (guerra siro-efraimita). Mató a 120.000 soldados de Judá en un solo día. Tiglat-piléser III de Asiria invadió Galaad y Galilea, deportando a sus habitantes. Murió asesinado por Oseas."
+      },
+      {
+        id: "I19",
+        num: 19,
+        part: 2,
+        kingdom: "Israel",
+        kingdomSide: "Norte (10 tribus)",
+        name: "Oseas",
+        reignYears: "9 años",
+        dates: "c. 748–740 a.e.c.",
+        status: "Infiel (Último rey de Israel)",
+        statusClass: "status-bad",
+        prophet: "Oseas, Miqueas",
+        contemporaries: "Oseas el profeta (su ministerio coincidió exactamente con el fin del reino norteño; anunció el juicio final y la caída de Samaria en 740 a.e.c., Libro de Oseas).",
+        scriptures: "2 Rey. 17:1-6; Oseas 13:16",
+        image: "images/israel_19_oseas_card.jpg",
+        mnemonicText: "#19 de Israel: Oseas = El último rey de las 10 tribus; Samaria destruida y deportada en 740 a.e.c.",
+        history: "Último rey del reino norteño de diez tribus. Dejó de pagar tributo a Salmanasar V de Asiria y conspiró con Egipto. Asiria sitió Samaria durante tres años; en 740 a.e.c. Samaria cayó, los israelitas fueron deportados y el reino norteño de Israel desapareció para siempre."
+      },
+
+      // ==========================================
+      // PROFETAS DE JEHOVÁ (1 al 15)
+      // ==========================================
+      {
+        id: "P1",
+        num: 1,
+        part: 1,
+        kingdom: "Profeta",
+        kingdomSide: "Israel / Judá",
+        name: "Elías",
+        reignYears: "Ministerio profético",
+        dates: "c. 940–c. 905 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Sucesor: Eliseo",
+        contemporaries: "Reyes de Israel: Acab, Ocozías y Jehoram. Rey de Judá: Jehoram (a quien envió un escrito profético de juicio, 2 Cró. 21:12-15).",
+        scriptures: "1 Rey. 17–2 Rey. 2; 2 Cró. 21:12-15",
+        image: "images/prophet_01_elias_card.jpg",
+        mnemonicText: "Profeta #1: Elías = Fuego del cielo en el Carmelo; capa de pelo y carta de juicio a Jehoram.",
+        history: "Tesbita valiente que desafió a los 450 profetas de Baal en el monte Carmelo demostrando con fuego del cielo quién es el Dios verdadero. Sobrevivió a la sequía sostenido por cuervos en Querit y por la viuda de Sarepta. Escribió una carta profética anunciando el castigo sobre Jehoram de Judá y ascendió en una tempestad."
+      },
+      {
+        id: "P2",
+        num: 2,
+        part: 1,
+        kingdom: "Profeta",
+        kingdomSide: "Israel",
+        name: "Eliseo",
+        reignYears: "Aprox. 60 años de ministerio",
+        dates: "c. 905–c. 844 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Predecesor: Elías",
+        contemporaries: "Reyes de Israel: Jehoram, Jehú, Jehoacaz y Jehoás. Contemporáneo de los reyes de Judá Jehosafat, Jehoram, Ocozías, Atalía y Jehoás.",
+        scriptures: "2 Rey. 2–13",
+        image: "images/prophet_02_eliseo_card.jpg",
+        mnemonicText: "Profeta #2: Eliseo = Porción doble del espíritu; realizó el doble de milagros y lecho con las flechas.",
+        history: "Hijo de Safat de Abel-meholá. Pidió y recibió dos partes del espíritu de Elías. Realizó el doble de milagros que su maestro: sanó las aguas de Jericó, resucitó al hijo de la sunamita, sanó de lepra al general sirio Naamán, hizo flotar el hacha de hierro y aconsejó a cuatro reyes de Israel."
+      },
+      {
+        id: "P3",
+        num: 3,
+        part: 1,
+        kingdom: "Profeta",
+        kingdomSide: "Israel",
+        name: "Jonás",
+        reignYears: "Ministerio profético",
+        dates: "c. 844 a.e.c.",
+        status: "Profeta de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de Jeroboán II",
+        contemporaries: "Rey de Israel: Jeroboán II (predijo la reconquista de las fronteras de Israel desde Hamat hasta el mar del Arabá, 2 Rey. 14:25). Reyes de Judá: Amasías y Uzías. Enviado a Nínive.",
+        scriptures: "2 Rey. 14:25; Libro de Jonás",
+        image: "images/prophet_03_jonas_card.jpg",
+        mnemonicText: "Profeta #3: Jonás = Profetizó la expansión fronteriza de Israel y enviado a Nínive (rescatado del gran pez).",
+        history: "De Gat-héfer. Jehová utilizó a Jonás para predecir que Jeroboán II recuperaría los límites de Israel desde Hamat hasta el mar del Arabá. Posteriormente, enviado a advertir a la gran ciudad de Nínive, huyó en barco hacia Tarsis, fue tragado por un gran pez y tras su rescate proclamó el mensaje que llevó al arrepentimiento ninivita."
+      },
+      {
+        id: "P4",
+        num: 4,
+        part: 1,
+        kingdom: "Profeta",
+        kingdomSide: "Israel / Judá",
+        name: "Amós",
+        reignYears: "Ministerio profético",
+        dates: "c. 820–800 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de Uzías y Jeroboán II",
+        contemporaries: "Rey de Israel: Jeroboán II. Rey de Judá: Uzías ('dos años antes del gran terremoto', Amós 1:1). Actuó en Betel contra el sacerdote Amasías.",
+        scriptures: "Libro de Amós (Amós 1:1; 7:14; 8:1-2)",
+        image: "images/prophet_04_amos_card.jpg",
+        mnemonicText: "Profeta #4: Amós = Boyero y punzador de higos de sicómoro; plomada contra el lujo y opresión.",
+        history: "Humilde pastor y punzador de higos de sicómoro de Tecoa (Judá). Enviado al idólatra reino del norte (Betel) 'dos años antes del terremoto'. Condenó con valentía la corrupción de las clases altas, sus lechos de marfil, la opresión al pobre y el comercio fraudulento."
+      },
+      {
+        id: "P5",
+        num: 5,
+        part: 1,
+        kingdom: "Profeta",
+        kingdomSide: "Judá",
+        name: "Joel",
+        reignYears: "Ministerio profético",
+        dates: "c. 820 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo temprano de Judá",
+        contemporaries: "Reino de Judá: probablemente durante la minoría de edad del rey Jehoás (bajo la regencia del sumo sacerdote Jehoiada) o durante el reinado de Uzías.",
+        scriptures: "Libro de Joel",
+        image: "images/prophet_05_joel_card.jpg",
+        mnemonicText: "Profeta #5: Joel = Invasión de langostas y profecía del derramamiento del espíritu santo.",
+        history: "Hijo de Petuel. Profetizó en Judá una devastadora invasión de langostas como símbolo del gran día de juicio de Jehová. Contiene la extraordinaria profecía mesiánica cumplida en el Pentecostés del año 33: 'Derramaré mi espíritu sobre toda clase de carne' (Joel 2:28-32)."
+      },
+      {
+        id: "P6",
+        num: 6,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Israel / Judá",
+        name: "Oseas",
+        reignYears: "Profetizó más de 50 años",
+        dates: "c. 804–después de 745 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de Jeroboán II a Ezequías",
+        contemporaries: "Reyes de Israel: Jeroboán II y hasta el último rey Oseas (caída de Samaria en 740 a.e.c.). Reyes de Judá: Uzías, Jotán, Acaz y Ezequías (Oseas 1:1).",
+        scriptures: "Libro de Oseas",
+        image: "images/prophet_06_oseas_card.jpg",
+        mnemonicText: "Profeta #6: Oseas = Matrimonio con Gómer ilustrando el amor leal de Jehová y la infidelidad de Israel.",
+        history: "Profetizó durante los reinados de Jeroboán II de Israel hasta Ezequías de Judá. Por orden divina se casó con Gómer, cuya infidelidad conyugal ilustró vívidamente el dolor de Jehová por el adulterio espiritual de Israel y la tierna súplica de perdón si volvían a Él."
+      },
+      {
+        id: "P7",
+        num: 7,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Judá",
+        name: "Miqueas",
+        reignYears: "Ministerio profético",
+        dates: "c. 777–717 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de Jotán, Acaz y Ezequías",
+        contemporaries: "Reyes de Judá: Jotán, Acaz y Ezequías (Miqueas 1:1). Presenció la caída de Samaria en 740 a.e.c. y el asedio asirio de Jerusalén.",
+        scriptures: "Libro de Miqueas (Miq. 5:2; 6:8)",
+        image: "images/prophet_07_miqueas_card.jpg",
+        mnemonicText: "Profeta #7: Miqueas = Profecía del origen del Mesías en Belén Éfrata (Miq. 5:2) y andar con modestia (Miq. 6:8).",
+        history: "De Moréset (Judá). Contemporáneo de Isaías. Profetizó la caída inminente de Samaria y Jerusalén. Registró una de las profecías mesiánicas más célebres: el nacimiento del Gobernante de Israel en Belén Éfrata, y resumió los requisitos de Dios: justicia, amor a la lealtad y modestia."
+      },
+      {
+        id: "P8",
+        num: 8,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Judá",
+        name: "Isaías",
+        reignYears: "Profetizó más de 46 años",
+        dates: "c. 778–después de 732 a.e.c.",
+        status: "Profeta sobresaliente de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de Uzías, Jotán, Acaz y Ezequías",
+        contemporaries: "Reyes de Judá: Uzías, Jotán, Acaz y Ezequías (Isaías 1:1; 6:1). Consejero clave de Ezequías durante la invasión de Senaquerib de Asiria.",
+        scriptures: "Libro de Isaías (Isa. 6; 7:14; 9:6; 53)",
+        image: "images/prophet_08_isaias_card.jpg",
+        mnemonicText: "Profeta #8: Isaías = '¡Aquí estoy yo, envíame a mí!'; profecías mesiánicas del Siervo sufriente y Ciro por nombre.",
+        history: "Hijo de Amoz. Tuvo la sublime visión de Jehová en su templo celestial el año que murió el rey Uzías. Aconsejó a Ezequías en el asedio asirio y profetizó la caída de Babilonia nombrando al conquistador Ciro 150 años antes de nacer, además del sacrificio del Siervo Mesiánico."
+      },
+      {
+        id: "P9",
+        num: 9,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Judá",
+        name: "Nahúm",
+        reignYears: "Ministerio profético",
+        dates: "antes de 632 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Profetizó contra Asiria",
+        contemporaries: "Reino de Judá: probablemente durante los reinados de Ezequías o Manasés / Amón, antes de la caída profetizada de Nínive en 632 a.e.c.",
+        scriptures: "Libro de Nahúm",
+        image: "images/prophet_09_nahum_card.jpg",
+        mnemonicText: "Profeta #9: Nahúm = Sentencia poética fulminante contra Nínive, 'la ciudad sanguinaria'.",
+        history: "Elqoshita. Pronunció una dramática y poética sentencia contra Nínive, la capital de Asiria, por su ferocidad, derramamiento de sangre e idolatría. Nínive cayó en 632 a.e.c. tal como predijo, trayendo alivio y consuelo a Judá."
+      },
+      {
+        id: "P10",
+        num: 10,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Judá",
+        name: "Sofonías",
+        reignYears: "Ministerio profético",
+        dates: "antes de 648 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de los primeros años de Josías",
+        contemporaries: "Rey de Judá: Josías (Sofonías 1:1), respaldando la erradicación del culto a Baal en los primeros años de reforma del rey.",
+        scriptures: "Libro de Sofonías (Sof. 1:14; 2:3)",
+        image: "images/prophet_10_sofonias_card.jpg",
+        mnemonicText: "Profeta #10: Sofonías = 'El gran día de Jehová está cerca'; exhortación a buscar justicia y mansedumbre (Sof. 2:3).",
+        history: "Posible tataranieto del fiel rey Ezequías. Sirvió en los primeros años de Josías y apoyó el celo reformador del rey anunciando el cercano e ineludible día del juicio de Jehová sobre Judá y las naciones circundantes."
+      },
+      {
+        id: "P11",
+        num: 11,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Judá",
+        name: "Jeremías",
+        reignYears: "Profetizó más de 40 años",
+        dates: "647–después de 580 a.e.c.",
+        status: "Profeta sobresaliente de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de Josías hasta la caída de Jerusalén",
+        contemporaries: "Reyes de Judá: Josías, Jehoacaz, Jehoiaquim, Jehoiaquín y Sedequías (Jeremías 1:1-3; 647 a.e.c. hasta después de la destrucción de 607 a.e.c.).",
+        scriptures: "Libros de Jeremías y Lamentaciones",
+        image: "images/prophet_11_jeremias_card.jpg",
+        mnemonicText: "Profeta #11: Jeremías = Más de 40 años de fiel advertencia; pozo cenagoso, cepos y llanto por la caída de 607 a.e.c.",
+        history: "Comisionado siendo un muchacho. Profetizó valientemente durante los reinados de Josías, Jehoacaz, Jehoiaquim, Jehoiaquín y Sedequías. Soportó calumnias, cepos, prisión en una cisterna cenagosa y vio cumplirse el doloroso fin de Jerusalén en 607 a.e.c., escribiendo Lamentaciones."
+      },
+      {
+        id: "P12",
+        num: 12,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Judá",
+        name: "Habacuc",
+        reignYears: "Ministerio profético",
+        dates: "c. 628 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo temprano de Jehoiaquim",
+        contemporaries: "Reino de Judá: probablemente a finales del reinado de Josías o durante el reinado de Jehoiaquim, anunciando la invasión inminente de los caldeos.",
+        scriptures: "Libro de Habacuc (Hab. 2:4; 3:17-19)",
+        image: "images/prophet_12_habacuc_card.jpg",
+        mnemonicText: "Profeta #12: Habacuc = '¿Hasta cuándo, oh Jehová?'; puesto en la torre de guardia y la verdad: 'el justo vivirá por su fidelidad'.",
+        history: "Planteó con franqueza a Jehová sus dudas sobre por qué toleraba la opresión en Judá. Recibió la respuesta de que los caldeos (babilonios) serían el instrumento de juicio. Esperó fielmente en su puesto de guardia confiando en que la visión se realizaría sin falta."
+      },
+      {
+        id: "P13",
+        num: 13,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Judá / Edom",
+        name: "Abdías",
+        reignYears: "Ministerio profético",
+        dates: "c. 607 a.e.c.",
+        status: "Profeta fiel de Jehová",
+        statusClass: "status-good",
+        prophet: "Profetizó el juicio contra Edom",
+        contemporaries: "Reino de Judá: contemporáneo con la caída y destrucción de Jerusalén bajo el rey Sedequías (607 a.e.c.), profetizando la retribución divina contra Edom.",
+        scriptures: "Libro de Abdías",
+        image: "images/prophet_13_abdias_card.jpg",
+        mnemonicText: "Profeta #13: Abdías = Retribución contra Edom por alegrarse y colaborar en la destrucción de Jerusalén.",
+        history: "Escribió el libro más corto de las Escrituras Hebreas (un solo capítulo), condenando la soberbia de Edom por alegrarse maliciosamente de la caída de Jerusalén en 607 a.e.c. y entregar a los fugitivos a los babilonios."
+      },
+      {
+        id: "P14",
+        num: 14,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Cautivos en Babilonia",
+        name: "Ezequiel",
+        reignYears: "Ministerio profético",
+        dates: "613–c. 591 a.e.c.",
+        status: "Profeta sacerdote de Jehová",
+        statusClass: "status-good",
+        prophet: "Contemporáneo de Jeremías y Daniel",
+        contemporaries: "En el exilio en Babilonia: desde el 5.° año de cautiverio del rey Jehoiaquín, contemporáneo con el reinado de Sedequías en Jerusalén (Ezequiel 1:1-3).",
+        scriptures: "Libro de Ezequiel",
+        image: "images/prophet_14_ezequiel_card.jpg",
+        mnemonicText: "Profeta #14: Ezequiel = El carro celestial de Jehová, centinela de Israel y visión del valle de los huesos secos.",
+        history: "Sacerdote deportado a Babilonia en 617 a.e.c. Vio visiones colosales de la gloria de Jehová junto al río Quebar. Sirvió como centinela fiel, dramatizó el asedio de Jerusalén y profetizó la futura restauración de la adoración pura."
+      },
+      {
+        id: "P15",
+        num: 15,
+        part: 2,
+        kingdom: "Profeta",
+        kingdomSide: "Corte de Babilonia",
+        name: "Daniel",
+        reignYears: "Más de 70 años de servicio fiel",
+        dates: "618–c. 536 a.e.c.",
+        status: "Profeta muy amado de Jehová",
+        statusClass: "status-good",
+        prophet: "En la corte de Babilonia y Medopersia",
+        contemporaries: "En Babilonia y Medopersia: deportado en días de Jehoiaquim, contemporáneo de Sedequías de Judá, Nabucodonosor, Belsasar, Darío el Medo y Ciro el Grande.",
+        scriptures: "Libro de Daniel",
+        image: "images/prophet_15_daniel_card.jpg",
+        mnemonicText: "Profeta #15: Daniel = Foso de los leones, el sueño de la estatua colosal de imperios mundiales y las 70 semanas al Mesías.",
+        history: "Llevado cautivo a Babilonia siendo un noble adolescente. Se mantuvo íntegro en la prueba del alimento real, interpretó por inspiración los sueños de Nabucodonosor sobre las potencias mundiales, sobrevivió al foso de los leones y recibió revelaciones cronológicas exactas del Mesías."
+      }
+    ];
+
+    let currentFilter = 'all';
+    let filteredList = [...KINGS_DATA];
+    let currentIndex = 0;
+
+    let galleryFilter = 'all';
+    let quizScope = 'all';
+
+    function updateCardDisplay() {
+      const king = filteredList[currentIndex];
+      if (!king) return;
+
+      const inner = document.getElementById('flashcard');
+      inner.classList.remove('is-flipped');
+
+      const isJuda = king.kingdom === "Judá";
+      const isIsrael = king.kingdom === "Israel";
+      const isProphet = king.kingdom === "Profeta";
+      const badgeClass = isJuda ? 'bg-juda' : (isIsrael ? 'bg-israel' : 'bg-prophet');
+
+      document.getElementById('card-badge').className = `card-header-badge ${badgeClass}`;
+      document.getElementById('card-kingdom-label').textContent = isProphet ? `PROFETA DE JEHOVÁ (${king.kingdomSide.toUpperCase()})` : `REINO DE ${king.kingdom.toUpperCase()} (${king.kingdomSide.toUpperCase()})`;
+      document.getElementById('card-number-badge').textContent = isProphet ? `PROFETA #${king.num}` : `REY #${king.num}`;
+      
+      document.getElementById('card-img').src = king.image;
+      document.getElementById('card-name').textContent = isProphet ? `Profeta ${king.name}` : `#${king.num} ${king.name}`;
+      document.getElementById('card-reign').textContent = `${king.reignYears} • ${king.dates}`;
+      document.getElementById('card-mnemonic-text').textContent = king.mnemonicText;
+
+      document.getElementById('back-king-title').textContent = isProphet ? `Profeta #${king.num} ${king.name}` : `#${king.num} ${king.name} de ${king.kingdom}`;
+      document.getElementById('tag-reign-status').textContent = king.status;
+      document.getElementById('tag-reign-status').className = `meta-tag ${king.statusClass}`;
+      document.getElementById('tag-dates').textContent = king.dates;
+      document.getElementById('tag-prophet').textContent = isProphet ? king.prophet : `Profeta(s): ${king.prophet}`;
+      document.getElementById('back-scriptures').textContent = king.scriptures;
+      document.getElementById('back-history').textContent = king.history;
+      document.getElementById('back-contemp-title').textContent = isProphet ? '👑 Reyes Bajo los Cuales Profetizó:' : '📜 Profetas Contemporáneos:';
+      document.getElementById('back-contemp-text').textContent = king.contemporaries;
+      document.getElementById('back-memory-trick').innerHTML = `<strong>Mnemotécnico:</strong> ${king.mnemonicText}`;
+
+      document.getElementById('counter-label').textContent = `${currentIndex + 1} / ${filteredList.length}`;
+      document.getElementById('prev-btn').disabled = currentIndex === 0;
+      document.getElementById('next-btn').disabled = currentIndex === filteredList.length - 1;
+
+      renderQuickSelector();
+    }
+
+    function renderQuickSelector() {
+      const container = document.getElementById('card-quick-selector');
+      if (!container) return;
+      container.innerHTML = '';
+      filteredList.forEach((item, idx) => {
+        const pill = document.createElement('button');
+        const isCurrent = idx === currentIndex;
+        const isJuda = item.kingdom === 'Judá';
+        const isIsrael = item.kingdom === 'Israel';
+        const bg = isCurrent ? '#2c2523' : (isJuda ? 'var(--juda-light)' : (isIsrael ? 'var(--israel-light)' : 'var(--prophet-light)'));
+        const textCol = isCurrent ? '#fff' : (isJuda ? 'var(--juda-color)' : (isIsrael ? 'var(--israel-color)' : 'var(--prophet-color)'));
+        const borderCol = isCurrent ? '#2c2523' : (isJuda ? 'var(--juda-border)' : (isIsrael ? 'var(--israel-border)' : 'var(--prophet-border)'));
+
+        pill.style.cssText = `padding:0.25rem 0.6rem; border-radius:999px; border:1px solid ${borderCol}; background:${bg}; color:${textCol}; font-size:0.75rem; font-weight:700; cursor:pointer; transition:all 0.15s;`;
+        pill.textContent = item.kingdom === 'Profeta' ? `P#${item.num} ${item.name}` : `#${item.num} ${item.name}`;
+        pill.onclick = () => {
+          currentIndex = idx;
+          updateCardDisplay();
+        };
+        container.appendChild(pill);
+      });
+    }
+
+    function flipCurrentCard() {
+      document.getElementById('flashcard').classList.toggle('is-flipped');
+    }
+
+    function nextCard() {
+      if (currentIndex < filteredList.length - 1) {
+        currentIndex++;
+        updateCardDisplay();
+      }
+    }
+
+    function prevCard() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateCardDisplay();
+      }
+    }
+
+    function filterKingdom(kingdom) {
+      currentFilter = kingdom;
+      document.getElementById('filter-all').className = 'filter-chip ' + (kingdom === 'all' ? 'active-all' : '');
+      document.getElementById('filter-part1').className = 'filter-chip ' + (kingdom === 'part1' ? 'active-part' : '');
+      document.getElementById('filter-part2').className = 'filter-chip ' + (kingdom === 'part2' ? 'active-part' : '');
+      document.getElementById('filter-juda').className = 'filter-chip ' + (kingdom === 'juda' ? 'active-juda' : '');
+      document.getElementById('filter-israel').className = 'filter-chip ' + (kingdom === 'israel' ? 'active-israel' : '');
+      document.getElementById('filter-prophets').className = 'filter-chip ' + (kingdom === 'prophets' ? 'active-prophets' : '');
+
+      if (kingdom === 'all') {
+        filteredList = [...KINGS_DATA];
+      } else if (kingdom === 'part1') {
+        filteredList = KINGS_DATA.filter(k => k.part === 1);
+      } else if (kingdom === 'part2') {
+        filteredList = KINGS_DATA.filter(k => k.part === 2);
+      } else if (kingdom === 'juda') {
+        filteredList = KINGS_DATA.filter(k => k.kingdom === 'Judá');
+      } else if (kingdom === 'israel') {
+        filteredList = KINGS_DATA.filter(k => k.kingdom === 'Israel');
+      } else if (kingdom === 'prophets') {
+        filteredList = KINGS_DATA.filter(k => k.kingdom === 'Profeta');
+      }
+      currentIndex = 0;
+      updateCardDisplay();
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('timeline-rows-container');
+      container.innerHTML = '';
+
+      const timelineMap = [
+        // PARTE 1 (A6-A)
+        { time: "c. 997 a.e.c.", jId: "J1", iId: "I1", note: "División de las 12 tribus tras Salomón" },
+        { time: "c. 980 a.e.c.", jId: "J2", iId: null },
+        { time: "c. 978 a.e.c.", jId: "J3", iId: "I2" },
+        { time: "c. 975 a.e.c.", jId: null, iId: "I3" },
+        { time: "c. 952 a.e.c.", jId: null, iId: "I4" },
+        { time: "c. 951 a.e.c.", jId: null, iId: "I5" },
+        { time: "c. 951 a.e.c.", jId: null, iId: "I6" },
+        { time: "c. 940 a.e.c.", jId: null, iId: "I7" },
+        { time: "c. 937 a.e.c.", jId: "J4", iId: null },
+        { time: "c. 919 a.e.c.", jId: null, iId: "I8" },
+        { time: "c. 917 a.e.c.", jId: null, iId: "I9" },
+        { time: "c. 913 a.e.c.", jId: "J5", iId: null },
+        { time: "c. 906 a.e.c.", jId: "J6", iId: null },
+        { time: "c. 905 a.e.c.", jId: "J7", iId: "I10", note: "Ministerio de Elías y Eliseo; purga de Jehú" },
+        { time: "c. 898 a.e.c.", jId: "J8", iId: null },
+        { time: "c. 876 a.e.c.", jId: null, iId: "I11" },
+        { time: "c. 859 a.e.c.", jId: null, iId: "I12" },
+        { time: "c. 858 a.e.c.", jId: "J9", iId: null },
+        { time: "c. 844 a.e.c.", jId: null, iId: "I13", note: "Profeta Jonás predice fronteras de Jeroboán II" },
+        { time: "c. 829 a.e.c.", jId: "J10", iId: null, note: "Profetas Amós y Joel activos" },
+
+        // PARTE 2 (A6-B)
+        { time: "c. 791 a.e.c.", jId: null, iId: "I14", note: "Fin de las 4 generaciones de Jehú" },
+        { time: "c. 791 a.e.c.", jId: null, iId: "I15" },
+        { time: "c. 791 a.e.c.", jId: null, iId: "I16", note: "Profeta Oseas activo" },
+        { time: "c. 780 a.e.c.", jId: null, iId: "I17" },
+        { time: "c. 778 a.e.c.", jId: null, iId: "I18" },
+        { time: "777 a.e.c.", jId: "J11", iId: null, note: "Comienza ministerio profético de Isaías y Miqueas" },
+        { time: "762 a.e.c.", jId: "J12", iId: null },
+        { time: "c. 748 a.e.c.", jId: null, iId: "I19" },
+        { time: "746 a.e.c.", jId: "J13", iId: null },
+        { time: "740 a.e.c.", isMilestone: true, text: "⚔️ 740 A.E.C. • CAÍDA DE SAMARIA — Fin del Reino del Norte (10 tribus) por Asiria. Judá continúa solo." },
+        { time: "732 a.e.c.", isEvent: true, text: "🛡️ 732 a.e.c. • Asedio de Senaquerib; el ángel aniquila a 185.000 asirios en días de Ezequías." },
+        { time: "716 a.e.c.", jId: "J14", iId: null, note: "Manasés reina 55 años; gran arrepentimiento" },
+        { time: "661 a.e.c.", jId: "J15", iId: null },
+        { time: "659 a.e.c.", jId: "J16", iId: null, note: "Josías: Hallazgo del rollo de la Ley; profetas Sofonías y Nahúm" },
+        { time: "628 a.e.c.", jId: "J17", iId: null, note: "Jehoacaz deportado a Egipto" },
+        { time: "628 a.e.c.", jId: "J18", iId: null, note: "Profeta Habacuc y quema del rollo de Jeremías" },
+        { time: "618 a.e.c.", jId: "J19", iId: null, note: "Primera deportación a Babilonia (Daniel y Ezequiel)" },
+        { time: "617 a.e.c.", jId: "J20", iId: null, note: "Sedequías: Último rey antes de la desolación" },
+        { time: "607 a.e.c.", isMilestoneFall: true, text: "🔥 607 A.E.C. • DESTRUCCIÓN DE JERUSALÉN Y EL TEMPLO — Fin de la dinastía en Judá y Cautiverio en Babilonia (70 años)." }
+      ];
+
+      timelineMap.forEach(row => {
+        if (row.isMilestone) {
+          const banner = document.createElement('div');
+          banner.className = 'timeline-row event-row';
+          banner.textContent = row.text;
+          container.appendChild(banner);
+          return;
+        }
+        if (row.isMilestoneFall) {
+          const banner = document.createElement('div');
+          banner.className = 'timeline-row event-row event-fall';
+          banner.textContent = row.text;
+          container.appendChild(banner);
+          return;
+        }
+        if (row.isEvent) {
+          const banner = document.createElement('div');
+          banner.className = 'timeline-row event-row';
+          banner.style.background = '#fefce8';
+          banner.style.color = '#854d0e';
+          banner.style.borderColor = '#fef08a';
+          banner.textContent = row.text;
+          container.appendChild(banner);
+          return;
+        }
+
+        const jKing = KINGS_DATA.find(k => k.id === row.jId);
+        const iKing = KINGS_DATA.find(k => k.id === row.iId);
+
+        const rowEl = document.createElement('div');
+        rowEl.className = 'timeline-row';
+
+        const jCol = document.createElement('div');
+        if (jKing) {
+          jCol.innerHTML = `
+            <div class="king-pill king-pill-juda" onclick="openModalById('${jKing.id}')">
+              <div class="pill-num num-juda">${jKing.num}</div>
+              <div>
+                <strong>${jKing.name}</strong> <span style="font-size:0.8rem; color:#666;">(${jKing.reignYears})</span>
+              </div>
+            </div>
+          `;
+        }
+        rowEl.appendChild(jCol);
+
+        const timeCol = document.createElement('div');
+        timeCol.className = 'time-badge';
+        timeCol.innerHTML = `${row.time}${row.note ? `<br><small style="font-size:0.7rem; font-weight:normal; color:#888;">${row.note}</small>` : ''}`;
+        rowEl.appendChild(timeCol);
+
+        const iCol = document.createElement('div');
+        if (iKing) {
+          iCol.innerHTML = `
+            <div class="king-pill king-pill-israel" onclick="openModalById('${iKing.id}')">
+              <div class="pill-num num-israel">${iKing.num}</div>
+              <div>
+                <strong>${iKing.name}</strong> <span style="font-size:0.8rem; color:#666;">(${iKing.reignYears})</span>
+              </div>
+            </div>
+          `;
+        }
+        rowEl.appendChild(iCol);
+
+        container.appendChild(rowEl);
+      });
+    }
+
+    function renderGallery() {
+      const container = document.getElementById('gallery-container');
+      container.innerHTML = '';
+      const query = (document.getElementById('gallery-search')?.value || '').toLowerCase().trim();
+
+      let list = [...KINGS_DATA];
+      if (galleryFilter === 'part1') list = list.filter(k => k.part === 1);
+      else if (galleryFilter === 'part2') list = list.filter(k => k.part === 2);
+      else if (galleryFilter === 'juda') list = list.filter(k => k.kingdom === 'Judá');
+      else if (galleryFilter === 'israel') list = list.filter(k => k.kingdom === 'Israel');
+      else if (galleryFilter === 'prophets') list = list.filter(k => k.kingdom === 'Profeta');
+
+      if (query) {
+        list = list.filter(k => 
+          k.name.toLowerCase().includes(query) ||
+          k.num.toString() === query ||
+          k.mnemonicText.toLowerCase().includes(query) ||
+          k.scriptures.toLowerCase().includes(query)
+        );
+      }
+
+      list.forEach(king => {
+        const isJuda = king.kingdom === 'Judá';
+        const isIsrael = king.kingdom === 'Israel';
+        const colorVar = isJuda ? 'var(--juda-color)' : (isIsrael ? 'var(--israel-color)' : 'var(--prophet-color)');
+        const typeLabel = king.kingdom === 'Profeta' ? `PROFETA #${king.num}` : `${king.kingdom.toUpperCase()} • REY #${king.num}`;
+
+        const card = document.createElement('div');
+        card.className = 'gallery-card';
+        card.onclick = () => openModalById(king.id);
+
+        card.innerHTML = `
+          <div class="gallery-card-img">
+            <img src="${king.image}" alt="${king.name}" loading="lazy">
+          </div>
+          <div class="gallery-card-info">
+            <div style="font-size:0.75rem; font-weight:700; color:${colorVar};">
+              ${typeLabel} (PARTE ${king.part})
+            </div>
+            <h4>
+              <span>${king.name}</span>
+              <span class="meta-tag ${king.statusClass}" style="font-size:0.7rem;">${king.status}</span>
+            </h4>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+              ⏱️ ${king.reignYears} (${king.dates})
+            </div>
+            <div style="font-size:0.75rem; color:#b45309; margin-top:6px; font-weight:600; line-height:1.3;">
+              💡 ${king.mnemonicText}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterGallery() {
+      renderGallery();
+    }
+
+    function filterGalleryKingdom(k) {
+      galleryFilter = k;
+      document.getElementById('gal-filter-all').className = 'filter-chip ' + (k === 'all' ? 'active-all' : '');
+      document.getElementById('gal-filter-part1').className = 'filter-chip ' + (k === 'part1' ? 'active-part' : '');
+      document.getElementById('gal-filter-part2').className = 'filter-chip ' + (k === 'part2' ? 'active-part' : '');
+      document.getElementById('gal-filter-juda').className = 'filter-chip ' + (k === 'juda' ? 'active-juda' : '');
+      document.getElementById('gal-filter-israel').className = 'filter-chip ' + (k === 'israel' ? 'active-israel' : '');
+      document.getElementById('gal-filter-prophets').className = 'filter-chip ' + (k === 'prophets' ? 'active-prophets' : '');
+      renderGallery();
+    }
+
+    function setQuizScope(scope) {
+      quizScope = scope;
+      document.getElementById('quiz-filter-all').className = 'filter-chip ' + (scope === 'all' ? 'active-all' : '');
+      document.getElementById('quiz-filter-juda').className = 'filter-chip ' + (scope === 'juda' ? 'active-juda' : '');
+      document.getElementById('quiz-filter-israel').className = 'filter-chip ' + (scope === 'israel' ? 'active-israel' : '');
+      document.getElementById('quiz-filter-prophets').className = 'filter-chip ' + (scope === 'prophets' ? 'active-prophets' : '');
+      document.getElementById('quiz-filter-part1').className = 'filter-chip ' + (scope === 'part1' ? 'active-part' : '');
+      document.getElementById('quiz-filter-part2').className = 'filter-chip ' + (scope === 'part2' ? 'active-part' : '');
+      loadQuizQuestion();
+    }
+
+    function openModalById(id) {
+      const king = KINGS_DATA.find(k => k.id === id);
+      if (!king) return;
+
+      const isJuda = king.kingdom === 'Judá';
+      const isIsrael = king.kingdom === 'Israel';
+      const bgBadge = isJuda ? 'bg-juda' : (isIsrael ? 'bg-israel' : 'bg-prophet');
+      const modalBody = document.getElementById('modal-body');
+
+      modalBody.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+          <span class="meta-tag ${bgBadge}" style="color:#fff;">${king.kingdom.toUpperCase()} • PARTE ${king.part}</span>
+          <span class="meta-tag ${king.statusClass}">${king.status}</span>
+        </div>
+        <h2 style="font-size:1.6rem; margin-bottom:0.25rem;">#${king.num} ${king.name}</h2>
+        <p style="color:var(--gold); font-weight:700; margin-bottom:1rem;">${king.reignYears} • ${king.dates}</p>
+
+        <div style="max-height:280px; overflow:hidden; border-radius:10px; background:#f4eee2; display:flex; justify-content:center; margin-bottom:1rem;">
+          <img src="${king.image}" style="max-height:280px; object-fit:contain;" alt="${king.name}">
+        </div>
+
+        <div class="mnemonic-box" style="margin-bottom:1rem;">
+          💡 <strong>Regla Mnemotécnica:</strong> ${king.mnemonicText}
+        </div>
+
+        <div class="back-section">
+          <strong>📖 Textos Bíblicos Clave:</strong>
+          <p class="scripture-quote">${king.scriptures}</p>
+        </div>
+
+        <div class="back-section">
+          <strong>🏛️ Resumen Histórico y Espiritual (jw.org):</strong>
+          <p style="font-size:0.9rem;">${king.history}</p>
+        </div>
+
+        <div class="back-section" style="background:#f0f7ff; border:1px solid #bfdbfe; border-radius:8px; padding:0.75rem 1rem; margin-bottom:1rem;">
+          <strong style="color:#1e40af; display:block; margin-bottom:4px;">${king.kingdom === 'Profeta' ? '👑 Reyes Bajo los Cuales Profetizó:' : '📜 Profetas Contemporáneos:'}</strong>
+          <p style="font-size:0.95rem; font-weight:600; color:#1e3a8a; margin:0; line-height:1.45;">${king.contemporaries}</p>
+        </div>
+      `;
+
+      document.getElementById('modal-overlay').classList.add('active');
+    }
+
+    function closeModal(event) {
+      document.getElementById('modal-overlay').classList.remove('active');
+    }
+    function closeModalDirect() {
+      document.getElementById('modal-overlay').classList.remove('active');
+    }
+
+    function getCleanMnemonicClue(king) {
+      let clue = king.mnemonicText;
+      if (clue.includes('=')) {
+        clue = clue.split('=')[1].trim();
+      }
+      const namesToRemove = [king.name];
+      if (king.name.includes(' ')) {
+        namesToRemove.push(...king.name.split(' '));
+      }
+      namesToRemove.forEach(nm => {
+        if (nm.length > 2) {
+          const reg = new RegExp(nm, 'gi');
+          clue = clue.replace(reg, '_______');
+        }
+      });
+      return clue;
+    }
+
+    function loadQuizQuestion() {
+      let pool = [...KINGS_DATA];
+      if (quizScope === 'juda') pool = pool.filter(k => k.kingdom === 'Judá');
+      else if (quizScope === 'israel') pool = pool.filter(k => k.kingdom === 'Israel');
+      else if (quizScope === 'prophets') pool = pool.filter(k => k.kingdom === 'Profeta');
+      else if (quizScope === 'part1') pool = pool.filter(k => k.part === 1);
+      else if (quizScope === 'part2') pool = pool.filter(k => k.part === 2);
+
+      const targetKing = pool[Math.floor(Math.random() * pool.length)];
+
+      const isJuda = targetKing.kingdom === 'Judá';
+      const isIsrael = targetKing.kingdom === 'Israel';
+      const badge = document.getElementById('quiz-badge');
+      badge.className = `quiz-q-badge ${isJuda ? 'bg-juda' : (isIsrael ? 'bg-israel' : 'bg-prophet')}`;
+      badge.textContent = `${targetKing.kingdom.toUpperCase()} (${targetKing.kingdomSide}) • PARTE ${targetKing.part}`;
+
+      const qText = document.getElementById('quiz-question');
+      const qImg = document.getElementById('quiz-img');
+      const optionsContainer = document.getElementById('quiz-options');
+      const feedback = document.getElementById('quiz-feedback');
+      const nextBtn = document.getElementById('quiz-next-btn');
+
+      feedback.textContent = '';
+      nextBtn.style.display = 'none';
+      optionsContainer.innerHTML = '';
+
+      const qTypes = ['number_to_name', 'name_to_number', 'mnemonic', 'reign_duration'];
+      const type = qTypes[Math.floor(Math.random() * qTypes.length)];
+
+      let options = [];
+      let correctAnswer = '';
+
+      if (type === 'number_to_name') {
+        qText.textContent = `¿Quién fue el ${targetKing.kingdom === 'Profeta' ? 'profeta' : 'rey'} #${targetKing.num} de ${targetKing.kingdom}?`;
+        qImg.style.display = 'none';
+        correctAnswer = targetKing.name;
+
+        const distractors = pool.filter(k => k.id !== targetKing.id);
+        shuffleArray(distractors);
+        options = [correctAnswer, distractors[0]?.name || 'Salomón', distractors[1]?.name || 'David', distractors[2]?.name || 'Saúl'];
+      } else if (type === 'name_to_number') {
+        qText.textContent = `¿Qué número le corresponde a ${targetKing.name} en el grupo de ${targetKing.kingdom}?`;
+        qImg.style.display = 'none';
+        correctAnswer = `#${targetKing.num}`;
+
+        let nums = [targetKing.num];
+        const maxN = targetKing.kingdom === 'Judá' ? 20 : (targetKing.kingdom === 'Israel' ? 19 : 15);
+        while (nums.length < 4) {
+          let randN = Math.floor(Math.random() * maxN) + 1;
+          if (!nums.includes(randN)) nums.push(randN);
+        }
+        options = nums.map(n => `#${n}`);
+      } else if (type === 'reign_duration') {
+        qText.textContent = `¿Cuánto duró el reinado / ministerio de ${targetKing.name}?`;
+        qImg.style.display = 'none';
+        correctAnswer = targetKing.reignYears;
+
+        const allReigns = Array.from(new Set(KINGS_DATA.map(k => k.reignYears))).filter(r => r !== targetKing.reignYears);
+        shuffleArray(allReigns);
+        options = [correctAnswer, allReigns[0], allReigns[1], allReigns[2]];
+      } else {
+        qText.textContent = `¿Qué personaje bíblico se memoriza con esta pista? "${targetKing.mnemonicText}"`;
+        qImg.src = targetKing.image;
+        qImg.style.display = 'block';
+        correctAnswer = `#${targetKing.num} ${targetKing.name} (${targetKing.kingdom})`;
+
+        const distractors = pool.filter(k => k.id !== targetKing.id);
+        shuffleArray(distractors);
+        options = [
+          correctAnswer,
+          `#${distractors[0].num} ${distractors[0].name} (${distractors[0].kingdom})`,
+          `#${distractors[1].num} ${distractors[1].name} (${distractors[1].kingdom})`,
+          `#${distractors[2].num} ${distractors[2].name} (${distractors[2].kingdom})`
+        ];
+      }
+
+      shuffleArray(options);
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-btn';
+        btn.textContent = opt;
+        btn.onclick = () => checkQuizAnswer(btn, opt === correctAnswer, correctAnswer, targetKing);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function checkQuizAnswer(selectedBtn, isCorrect, correctAns, king) {
+      const allBtns = document.querySelectorAll('.quiz-btn');
+      allBtns.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correctAns) btn.classList.add('correct');
+      });
+
+      const feedback = document.getElementById('quiz-feedback');
+      const nextBtn = document.getElementById('quiz-next-btn');
+
+      if (isCorrect) {
+        selectedBtn.classList.add('correct');
+        feedback.innerHTML = `<span style="color:#059669;">🎉 ¡Correcto!</span> #${king.num} ${king.name} (${king.reignYears}). 💡 <em>${king.mnemonicText}</em>`;
+      } else {
+        selectedBtn.classList.add('wrong');
+        feedback.innerHTML = `<span style="color:#dc2626;">❌ Incorrecto.</span> La respuesta era <strong>${correctAns}</strong>. 💡 <em>${king.mnemonicText}</em>`;
+      }
+
+      nextBtn.style.display = 'block';
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.view-container').forEach(c => c.classList.remove('active'));
+
+      if (tabId === 'flashcards') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('view-flashcards').classList.add('active');
+      } else if (tabId === 'parallel') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('view-parallel').classList.add('active');
+        renderTimeline();
+      } else if (tabId === 'gallery') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('view-gallery').classList.add('active');
+        renderGallery();
+      } else if (tabId === 'quiz') {
+        document.querySelectorAll('.tab-btn')[3].classList.add('active');
+        document.getElementById('view-quiz').classList.add('active');
+        loadQuizQuestion();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const flashcardView = document.getElementById('view-flashcards');
+      if (flashcardView.classList.contains('active')) {
+        if (e.key === 'ArrowRight') nextCard();
+        if (e.key === 'ArrowLeft') prevCard();
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          flipCurrentCard();
+        }
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateCardDisplay();
+      renderTimeline();
+      renderGallery();
+    });
+  </script>
+</body>
+</html>

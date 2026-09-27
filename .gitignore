@@ -1,0 +1,30 @@
+# Dependencias
+node_modules/
+
+# Entorno y claves privadas
+.env
+.env.local
+.env.*.local
+
+# Logs y temporales
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# Copias de seguridad locales rotativas (se respalda la base principal data/database.json)
+data/backups/
+*.bak*
+data/*.bak*
+
+# Archivos temporales del servidor local opcional
+data/*.tmp-*
+data/*.corrupt-*
+data/.auth-secret
+
+# Tus apuntes nunca se suben a este repositorio (es público): viven en el repositorio privado
+data/database.json
+apuntes/*
+!apuntes/README.md
