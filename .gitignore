@@ -28,3 +28,7 @@ data/.auth-secret
 data/database.json
 apuntes/*
 !apuntes/README.md
+mis-apuntes*.json
+
+# La Biblia (EPUB de jw.org) se importa en cada dispositivo; nunca se sube aquí
+*.epub

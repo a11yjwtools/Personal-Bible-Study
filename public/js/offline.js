@@ -814,15 +814,32 @@
     if (p === '/api/scripture' && method === 'GET') {
       const ref = url.searchParams.get('ref');
       if (!ref) return fail('Falta el parámetro ref (cita bíblica).');
+      const lang = url.searchParams.get('lang') || undefined;
+      // 1) Biblia importada en este dispositivo (sin conexión, español o inglés)
+      let local = null;
+      if (window.EPBible) {
+        try { local = await window.EPBible.lookup(ref, lang); } catch (e) { local = { success: false, error: e.message }; }
+        if (local && local.success) return { status: 200, body: local };
+      }
+      // 2) Motor integrado / Gemini
       let result = null;
-      try { result = await engine().scripture.getScriptureText(ref, url.searchParams.get('lang') || undefined); } catch (e) { result = { success: false, error: e.message }; }
+      try { result = await engine().scripture.getScriptureText(ref, lang); } catch (e) { result = { success: false, error: e.message }; }
       if (result && result.success) return { status: 200, body: result };
+      // 3) Enlace a jw.org
       const parsed = engine().scripture.parseScriptureRef(ref);
-      const link = parsed ? `https://wol.jw.org/es/wol/b/r4/lp-s/nwt/${parsed.bookNum}/${parsed.chapter}#study=discover&v=${parsed.bookNum}:${parsed.chapter}:${parsed.startVerse}` : 'https://wol.jw.org/es/wol/h/r4/lp-s';
-      const hasKey = engine().getGeminiKey().length > 10;
-      return fail(hasKey
-        ? `No se pudo obtener el texto de ${parsed ? parsed.citation : ref}. Ábrelo en jw.org y pégalo: ${link}`
-        : `Para insertar el texto automáticamente añade tu clave gratuita de Gemini en Ajustes. Mientras tanto puedes abrirlo en jw.org: ${link}`, 404, { link, citation: parsed ? parsed.citation : ref });
+      const en = lang === 'en';
+      const link = parsed
+        ? (en ? `https://wol.jw.org/en/wol/b/r1/lp-e/nwt/${parsed.bookNum}/${parsed.chapter}#study=discover&v=${parsed.bookNum}:${parsed.chapter}:${parsed.startVerse}`
+              : `https://wol.jw.org/es/wol/b/r4/lp-s/nwt/${parsed.bookNum}/${parsed.chapter}#study=discover&v=${parsed.bookNum}:${parsed.chapter}:${parsed.startVerse}`)
+        : (en ? 'https://wol.jw.org/en/wol/h/r1/lp-e' : 'https://wol.jw.org/es/wol/h/r4/lp-s');
+      const citation = parsed ? parsed.citation : ref;
+      if (local && local.notInstalled) {
+        return fail(`Para insertar textos sin conexión, importa la Biblia en Ajustes → Biblia sin conexión. Mientras tanto puedes abrirlo en jw.org: ${link}`, 404, { link, citation, notInstalled: true });
+      }
+      if (local && local.error && !/No se reconoció/.test(local.error)) {
+        return fail(`${local.error} Puedes abrirlo en jw.org: ${link}`, 404, { link, citation });
+      }
+      return fail(`No se reconoció la cita "${ref}". Escríbela como "Juan 3:16", "Prov. 3:5, 6" o "Rom. 5:12; 6:23".`, 404, { link: parsed ? link : undefined, citation });
     }
 
     // --- Subir documento ---

@@ -4,7 +4,7 @@
 // aunque no haya Internet. Los datos NO pasan por aquí: viven en
 // IndexedDB (js/offline.js) y se sincronizan con tu repositorio de GitHub.
 // ==========================================================================
-const VERSION = 'v3.2.0';
+const VERSION = 'v3.3.0';
 const SHELL_CACHE = `ep-shell-${VERSION}`;
 const RUNTIME_CACHE = 'ep-runtime-v1';
 
@@ -13,6 +13,7 @@ const SHELL = [
   'index.html',
   'css/style.css',
   'js/engine.js',
+  'js/bible.js',
   'js/offline.js',
   'js/app-shell.js',
   'js/sound.js',

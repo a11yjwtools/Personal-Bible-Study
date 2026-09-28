@@ -2996,6 +2996,47 @@
     } catch (e) {}
   }
 
+  // ------------------------------------------------------------------
+  // Versículos: idioma de la nota y formato del recuadro
+  // ------------------------------------------------------------------
+  function detectScriptureLang() {
+    try {
+      const pref = localStorage.getItem('ep_bible_lang');
+      if (pref === 'es' || pref === 'en') return pref;
+    } catch (e) {}
+    const src = ((dom.noteRichEditor && dom.noteRichEditor.innerText) || (dom.noteTextarea && dom.noteTextarea.value) || '').slice(0, 6000).toLowerCase();
+    const count = (words) => words.reduce((n, w) => n + (src.match(new RegExp(`(^|[^a-záéíóúñü])${w}(?=[^a-záéíóúñü]|$)`, 'g')) || []).length, 0);
+    const en = count(['the', 'and', 'of', 'to', 'that', 'is', 'you', 'with', 'what', 'how', 'his', 'we', 'our', 'will', 'are']);
+    const es = count(['el', 'la', 'de', 'que', 'y', 'los', 'las', 'del', 'por', 'con', 'para', 'una', 'es', 'nos', 'su']);
+    return en > es ? 'en' : 'es';
+  }
+
+  function scriptureApiUrl(ref) {
+    return `/api/scripture?ref=${encodeURIComponent(ref)}&lang=${detectScriptureLang()}`;
+  }
+
+  function scriptureTextHtml(data) {
+    if (Array.isArray(data.passages) && data.passages.length) {
+      const multi = data.passages.reduce((n, lines) => n + lines.length, 0) > 1;
+      return data.passages.map(lines => lines.map(l => (multi ? `<strong>${l.v}</strong> ` : '') + escapeHtml(l.t)).join(' ')).join(' … ');
+    }
+    return escapeHtml(data.text);
+  }
+
+  function buildScriptureHtml(data) {
+    const inner = scriptureTextHtml(data);
+    const quoted = /^[“”"«]/.test(String(data.text || '').trim()) ? inner : `"${inner}"`;
+    return `<div class="paper-scripture-box"><span class="scripture-icon">📖</span> <span class="paper-scripture-text"><em>${quoted}</em></span> — <strong>${escapeHtml(data.citation)}</strong></div><p><br></p>`;
+  }
+
+  function buildScriptureMarkdown(data) {
+    const text = Array.isArray(data.passages) && data.passages.length
+      ? data.passages.map(lines => lines.map(l => (data.passages.reduce((n, x) => n + x.length, 0) > 1 ? `**${l.v}** ` : '') + l.t).join(' ')).join(' … ')
+      : data.text;
+    const quoted = /^[“”"«]/.test(String(data.text || '').trim()) ? text : `"${text}"`;
+    return `\n> 📖 *${quoted}* — **${data.citation}**\n\n`;
+  }
+
   async function insertScriptureForSelectedText(refStr) {
     if (!dom.noteRichEditor) return;
     const clean = (refStr || '').replace(/^[📖💡•\-\*\s]+/, '').replace(/^Punto Clave:\s*/i, '').trim();
@@ -3024,7 +3065,7 @@
     }
 
     try {
-      const res = await fetch(`/api/scripture?ref=${encodeURIComponent(clean)}`);
+      const res = await fetch(scriptureApiUrl(clean));
       const data = await res.json();
 
       if (btnScripture) {
@@ -3032,7 +3073,7 @@
       }
 
       if (data && data.success && data.text) {
-        const scriptureHtml = `<div class="paper-scripture-box"><span class="scripture-icon">📖</span> <span class="paper-scripture-text"><em>"${escapeHtml(data.text)}"</em></span> — <strong>${escapeHtml(data.citation)}</strong></div><p><br></p>`;
+        const scriptureHtml = buildScriptureHtml(data);
         
         const temp = document.createElement('div');
         temp.innerHTML = scriptureHtml;
@@ -3103,10 +3144,10 @@
     if (!clean) return;
 
     try {
-      const res = await fetch(`/api/scripture?ref=${encodeURIComponent(clean)}`);
+      const res = await fetch(scriptureApiUrl(clean));
       const data = await res.json();
       if (data && data.success && data.text) {
-        const replacement = `\n> 📖 *"${data.text}"* — **${data.citation}**\n\n`;
+        const replacement = buildScriptureMarkdown(data);
         const ta = dom.noteTextarea;
         if (ta) {
           ta.setRangeText(replacement, end, end, 'end');
@@ -3153,14 +3194,14 @@
     }
 
     try {
-      const res = await fetch(`/api/scripture?ref=${encodeURIComponent(q)}`);
+      const res = await fetch(scriptureApiUrl(q));
       const data = await res.json();
       if (data.success && data.text) {
         activeScripturePromptData = data;
         activeScripturePromptData.rawRef = q;
         if (dom.scriptureLookupRefBadge) dom.scriptureLookupRefBadge.textContent = data.citation;
-        if (dom.scriptureLookupSourceBadge) dom.scriptureLookupSourceBadge.textContent = data.translation || 'TNM / jw.org';
-        if (dom.scriptureLookupTextPreview) dom.scriptureLookupTextPreview.textContent = `"${data.text}"`;
+        if (dom.scriptureLookupSourceBadge) dom.scriptureLookupSourceBadge.textContent = (data.translation || 'TNM / jw.org') + (data.source === 'biblia-local' ? ' · sin conexión' : '');
+        if (dom.scriptureLookupTextPreview) dom.scriptureLookupTextPreview.innerHTML = scriptureTextHtml(data);
       } else {
         if (dom.scriptureLookupSourceBadge) dom.scriptureLookupSourceBadge.textContent = 'No disponible';
         if (dom.scriptureLookupTextPreview) {
@@ -3499,7 +3540,7 @@
       }
 
       if (activeScripturePromptData && activeScripturePromptData.text) {
-        const scriptureHtml = `<div class="paper-scripture-box"><span class="scripture-icon">📖</span> <span class="paper-scripture-text"><em>"${escapeHtml(activeScripturePromptData.text)}"</em></span> — <strong>${escapeHtml(activeScripturePromptData.citation)}</strong></div><p><br></p>`;
+        const scriptureHtml = buildScriptureHtml(activeScripturePromptData);
         restoreEditorSelection();
         insertHtmlAtCursor(scriptureHtml);
         dom.noteRichEditor.focus({ preventScroll: true });

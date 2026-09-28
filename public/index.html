@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Kalam:wght@400;700&family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.2.0">
+  <link rel="stylesheet" href="css/style.css?v=3.3.0">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
@@ -741,11 +741,30 @@
           </section>
 
           <section class="settings-section">
+            <h3 class="settings-title"><svg class="i"><use href="#i-bible"/></svg>Biblia sin conexión</h3>
+            <div id="bibleStatus" class="bible-status">Comprobando…</div>
+            <div class="settings-actions">
+              <button type="button" id="btnImportBible" class="btn-secondary"><svg class="i"><use href="#i-upload"/></svg>Importar Biblia (EPUB)</button>
+              <input type="file" id="bibleFileInput" accept=".epub,application/epub+zip" multiple hidden>
+            </div>
+            <div id="bibleProgress" class="bible-progress" hidden><div class="bible-progress-bar"></div><span class="bible-progress-text"></span></div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label class="form-label" for="bibleLangSelect">Idioma de los versículos</label>
+              <select id="bibleLangSelect" class="form-input">
+                <option value="auto">Automático (según la cita y la nota)</option>
+                <option value="es">Siempre español</option>
+                <option value="en">Always English</option>
+              </select>
+            </div>
+            <div class="form-help">Descarga la Traducción del Nuevo Mundo en formato <strong>EPUB</strong> desde jw.org (español y/o inglés) e impórtala aquí; puedes elegir los dos archivos a la vez. Se guarda <strong>solo en este dispositivo</strong>, no se sube a GitHub. Luego selecciona una cita en tu nota (por ejemplo <em>Juan 3:16</em> o <em>Prov. 3:5, 6</em>) y pulsa <strong>Versículo</strong>.</div>
+          </section>
+
+          <section class="settings-section">
             <h3 class="settings-title"><svg class="i"><use href="#i-sparkles"/></svg>Inteligencia artificial</h3>
             <div class="form-group">
               <label class="form-label" for="apiKeyInput">Clave de Google Gemini <span class="optional">(opcional)</span></label>
               <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy…" autocomplete="off">
-              <div class="form-help">Gratis en <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>. Se guarda solo en este dispositivo. Sin clave se usa el motor local integrado (y los versículos no se insertan automáticamente).</div>
+              <div class="form-help">Gratis en <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>. Se guarda solo en este dispositivo. Sin clave se usa el motor local integrado. Los versículos se insertan con la Biblia importada arriba.</div>
             </div>
           </section>
 
@@ -876,12 +895,13 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/engine.js?v=3.2.0"></script>
-  <script src="js/offline.js?v=3.2.0"></script>
-  <script src="js/sound.js?v=3.2.0"></script>
-  <script src="js/rosco.js?v=3.2.0"></script>
-  <script src="js/game.js?v=3.2.0"></script>
-  <script src="js/notes.js?v=3.2.0"></script>
-  <script src="js/app-shell.js?v=3.2.0"></script>
+  <script src="js/engine.js?v=3.3.0"></script>
+  <script src="js/bible.js?v=3.3.0"></script>
+  <script src="js/offline.js?v=3.3.0"></script>
+  <script src="js/sound.js?v=3.3.0"></script>
+  <script src="js/rosco.js?v=3.3.0"></script>
+  <script src="js/game.js?v=3.3.0"></script>
+  <script src="js/notes.js?v=3.3.0"></script>
+  <script src="js/app-shell.js?v=3.3.0"></script>
 </body>
 </html>
