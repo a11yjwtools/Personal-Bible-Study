@@ -38,7 +38,7 @@
     saveTimeout: null,
     isSaving: false,
     activeTab: 'notion',
-    fontSize: 1.125, // rem
+    fontSize: 1.25, // rem
     isSidebarCollapsed: false
   };
 
@@ -458,13 +458,14 @@
   function initStudyPreferences() {
     const fonts = ['serif', 'system', 'kalam', 'caveat', 'patrick'];
     const papers = ['paper-clean', 'paper-warm-parchment', 'paper-ruled', 'paper-grid'];
-    let savedFont = localStorage.getItem('study_font_v3') || 'serif';
-    let savedPaper = localStorage.getItem('study_paper') || 'paper-clean';
-    if (!fonts.includes(savedFont)) savedFont = 'serif';
-    if (!papers.includes(savedPaper)) savedPaper = 'paper-clean';
-    const savedSize = parseFloat(localStorage.getItem('study_font_size_v3') || '1.125');
+    // Por defecto: letra manuscrita sobre hoja cuadriculada de cuaderno
+    let savedFont = localStorage.getItem('study_font_v4') || 'kalam';
+    let savedPaper = localStorage.getItem('study_paper_v4') || 'paper-grid';
+    if (!fonts.includes(savedFont)) savedFont = 'kalam';
+    if (!papers.includes(savedPaper)) savedPaper = 'paper-grid';
+    const savedSize = parseFloat(localStorage.getItem('study_font_size_v4') || '1.25');
 
-    notesState.fontSize = isNaN(savedSize) ? 1.125 : savedSize;
+    notesState.fontSize = isNaN(savedSize) ? 1.25 : savedSize;
 
     if (dom.fontFamilySelector) dom.fontFamilySelector.value = savedFont;
     if (dom.paperStyleSelector) dom.paperStyleSelector.value = savedPaper;
@@ -481,7 +482,7 @@
       el.classList.add(`font-${fontKey}`);
     });
 
-    localStorage.setItem('study_font_v3', fontKey);
+    localStorage.setItem('study_font_v4', fontKey);
   }
 
   function applyPaperStyle(styleKey) {
@@ -492,7 +493,7 @@
       );
       el.classList.add(styleKey);
     });
-    localStorage.setItem('study_paper', styleKey);
+    localStorage.setItem('study_paper_v4', styleKey);
   }
 
   function applyFontSize(size) {
@@ -503,7 +504,7 @@
     if (dom.noteTextarea) {
       dom.noteTextarea.style.fontSize = `${notesState.fontSize}rem`;
     }
-    localStorage.setItem('study_font_size_v3', notesState.fontSize);
+    localStorage.setItem('study_font_size_v4', notesState.fontSize);
   }
 
   // ==========================================
@@ -3596,7 +3597,7 @@
     } catch (e) {}
 
     // Restaurar estado minimizado guardado
-    const savedCollapsed = localStorage.getItem('study_toolbar_collapsed_v3') !== 'false';
+    const savedCollapsed = localStorage.getItem('study_toolbar_collapsed_v4') === 'true';
     toolbar.classList.toggle('is-collapsed', savedCollapsed);
     updateToggleUi(savedCollapsed);
 
@@ -3604,7 +3605,7 @@
       e.stopPropagation();
       const isNowCollapsed = toolbar.classList.toggle('is-collapsed');
       try {
-        localStorage.setItem('study_toolbar_collapsed_v3', isNowCollapsed ? 'true' : 'false');
+        localStorage.setItem('study_toolbar_collapsed_v4', isNowCollapsed ? 'true' : 'false');
       } catch (err) {}
       updateToggleUi(isNowCollapsed);
     });

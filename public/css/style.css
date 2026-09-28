@@ -780,25 +780,89 @@ main { min-height: calc(100vh - var(--header-h)); }
 .font-kalam { font-family: 'Kalam', cursive; }
 .font-patrick { font-family: 'Patrick Hand', cursive; }
 .font-caveat { font-family: 'Caveat', cursive; }
-.notion-rich-editor.font-caveat { font-size: 1.4rem; }
 
-/* Estilos de hoja */
-.active-editor-card.paper-warm-parchment { background: #fdf9ef; }
-[data-theme="dark"] .active-editor-card.paper-warm-parchment { background: #1d1a15; }
-.active-editor-card.paper-warm-parchment .paper-toolbar { background: color-mix(in srgb, #fdf9ef 92%, transparent); }
-[data-theme="dark"] .active-editor-card.paper-warm-parchment .paper-toolbar { background: color-mix(in srgb, #1d1a15 92%, transparent); }
+/* Estilos de hoja
+   Cuaderno: papel marfil, cuadrícula azul suave del tamaño de una línea de
+   texto y margen rojo a la izquierda. */
+.active-editor-card {
+  --paper: var(--surface);
+  --grid-line: rgba(90, 135, 200, 0.17);
+  --grid-major: rgba(90, 135, 200, 0.2);
+  --margin-line: rgba(214, 72, 72, 0.45);
+  --ink: #1f2b4d;
+}
+[data-theme="dark"] .active-editor-card {
+  --grid-line: rgba(150, 180, 230, 0.09);
+  --grid-major: rgba(150, 180, 230, 0.09);
+  --margin-line: rgba(235, 110, 110, 0.35);
+  --ink: #dfe6f5;
+}
+.active-editor-card.paper-grid,
+.active-editor-card.paper-ruled { --paper: #fdfcf6; background: var(--paper); }
+[data-theme="dark"] .active-editor-card.paper-grid,
+[data-theme="dark"] .active-editor-card.paper-ruled { --paper: #1b1c21; }
+.active-editor-card.paper-warm-parchment { --paper: #fbf5e6; background: var(--paper); }
+[data-theme="dark"] .active-editor-card.paper-warm-parchment { --paper: #1d1a15; }
+.active-editor-card.paper-grid .paper-toolbar,
+.active-editor-card.paper-ruled .paper-toolbar,
+.active-editor-card.paper-warm-parchment .paper-toolbar { background: color-mix(in srgb, var(--paper) 94%, transparent); }
+
+/* Hoja cuadriculada: toda la hoja (cabecera incluida) */
+.paper-notebook-sheet.paper-grid {
+  position: relative;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+  border-radius: 0 0 var(--r-xl) var(--r-xl);
+}
+/* Margen rojo de cuaderno */
+.paper-notebook-sheet.paper-grid::before,
+.paper-notebook-sheet.paper-ruled::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 40px;
+  width: 0;
+  border-left: 1.5px solid var(--margin-line);
+  pointer-events: none;
+  z-index: 1;
+}
+.paper-notebook-sheet.paper-ruled { position: relative; background: var(--paper); border-radius: 0 0 var(--r-xl) var(--r-xl); }
+.paper-grid .paper-toolbar, .paper-ruled .paper-toolbar { z-index: 16; }
+.paper-grid .notion-rich-editor p { margin: 0 0 0.2em; }
+
+/* Hoja rayada: una línea por renglón de texto */
 .paper-ruled .notion-rich-editor {
-  background-image: linear-gradient(to bottom, transparent calc(1.75em - 1px), var(--border) calc(1.75em - 1px));
+  background-image: linear-gradient(to bottom, transparent calc(1.75em - 1px), var(--grid-line) calc(1.75em - 1px));
   background-size: 100% 1.75em;
   background-attachment: local;
 }
 .paper-ruled .notion-rich-editor p { margin: 0; }
-.paper-grid .notion-rich-editor {
-  background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 22px 22px;
-  background-position: -1px -1px;
+
+/* Las propiedades del apunte sobre la cuadrícula, con fondo de papel para leerse bien */
+.paper-grid .note-properties, .paper-ruled .note-properties { border-color: var(--grid-line); }
+.paper-grid .prop-input:hover, .paper-ruled .prop-input:hover { background: color-mix(in srgb, var(--paper) 70%, var(--surface-3)); }
+
+/* Letra manuscrita en tinta azul oscura, como un bolígrafo */
+.notion-rich-editor.font-kalam,
+.notion-rich-editor.font-patrick,
+.notion-rich-editor.font-caveat,
+.note-title-input.font-kalam,
+.note-title-input.font-patrick,
+.note-title-input.font-caveat { color: var(--ink); }
+.notion-rich-editor.font-kalam, .notion-rich-editor.font-patrick { line-height: 1.8; }
+.notion-rich-editor.font-caveat { font-size: 1.45rem; line-height: 1.6; }
+.notion-rich-editor.font-kalam strong, .notion-rich-editor.font-patrick strong { font-weight: 700; }
+.notion-rich-editor.font-kalam h1, .notion-rich-editor.font-kalam h2, .notion-rich-editor.font-kalam h3,
+.notion-rich-editor.font-kalam .paper-h1, .notion-rich-editor.font-kalam .paper-h2 { font-weight: 700; letter-spacing: 0; }
+.font-kalam .paper-scripture-box, .font-patrick .paper-scripture-box, .font-caveat .paper-scripture-box { background: color-mix(in srgb, var(--accent-soft) 80%, transparent); }
+.font-kalam .paper-callout-box, .font-patrick .paper-callout-box, .font-caveat .paper-callout-box { background: color-mix(in srgb, var(--surface-3) 75%, transparent); }
+
+@media (max-width: 900px) {
+  .paper-notebook-sheet.paper-grid::before, .paper-notebook-sheet.paper-ruled::before { left: 10px; }
+  .paper-notebook-sheet.paper-grid, .paper-notebook-sheet.paper-ruled { border-radius: 0; }
 }
 
 /* Control de cambios IA */

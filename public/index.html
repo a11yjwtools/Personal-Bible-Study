@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Kalam:wght@400;700&family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.1.0">
+  <link rel="stylesheet" href="css/style.css?v=3.2.0">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
@@ -313,17 +313,17 @@
                 </div>
                 <div class="toolbar-group toolbar-collapsible">
                   <select id="fontFamilySelector" class="toolbar-select" title="Tipo de letra">
+                    <option value="kalam" selected>Manuscrita</option>
+                    <option value="patrick">Cuaderno</option>
+                    <option value="caveat">Caligrafía</option>
                     <option value="serif">Serif</option>
                     <option value="system">Sans</option>
-                    <option value="kalam">Manuscrita</option>
-                    <option value="caveat">Caligrafía</option>
-                    <option value="patrick">Cuaderno</option>
                   </select>
                   <select id="paperStyleSelector" class="toolbar-select" title="Estilo de hoja">
-                    <option value="paper-clean">Hoja lisa</option>
-                    <option value="paper-warm-parchment">Crema</option>
+                    <option value="paper-grid" selected>Cuadrícula</option>
                     <option value="paper-ruled">Rayada</option>
-                    <option value="paper-grid">Cuadrícula</option>
+                    <option value="paper-warm-parchment">Crema</option>
+                    <option value="paper-clean">Hoja lisa</option>
                   </select>
                   <button type="button" id="btnFontDec" class="toolbar-btn toolbar-text" title="Letra más pequeña">A−</button>
                   <button type="button" id="btnFontInc" class="toolbar-btn toolbar-text" title="Letra más grande">A+</button>
@@ -364,7 +364,7 @@
               </div>
 
               <div class="editor-textarea-wrapper">
-                <div id="noteRichEditor" class="notion-rich-editor font-serif" contenteditable="true" spellcheck="true"
+                <div id="noteRichEditor" class="notion-rich-editor font-kalam" contenteditable="true" spellcheck="true"
                   role="textbox" aria-multiline="true" aria-label="Contenido del apunte"
                   data-placeholder="Empieza a escribir…"></div>
                 <textarea id="noteTextarea" style="display: none;"></textarea>
@@ -876,12 +876,12 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/engine.js?v=3.1.0"></script>
-  <script src="js/offline.js?v=3.1.0"></script>
-  <script src="js/sound.js?v=3.1.0"></script>
-  <script src="js/rosco.js?v=3.1.0"></script>
-  <script src="js/game.js?v=3.1.0"></script>
-  <script src="js/notes.js?v=3.1.0"></script>
-  <script src="js/app-shell.js?v=3.1.0"></script>
+  <script src="js/engine.js?v=3.2.0"></script>
+  <script src="js/offline.js?v=3.2.0"></script>
+  <script src="js/sound.js?v=3.2.0"></script>
+  <script src="js/rosco.js?v=3.2.0"></script>
+  <script src="js/game.js?v=3.2.0"></script>
+  <script src="js/notes.js?v=3.2.0"></script>
+  <script src="js/app-shell.js?v=3.2.0"></script>
 </body>
 </html>
