@@ -2718,18 +2718,23 @@
             : `Motor Local (${langLabel})`;
         }
 
+        // Si Gemini falló, decirlo claramente (antes se mostraba "Todo correcto")
+        const geminiWarning = (data.usedEngine !== 'gemini' && data.geminiError)
+          ? `<div class="ai-error ai-gemini-warning"><strong>No se pudo usar Google Gemini.</strong> ${escapeHtml(data.geminiError)}<br><span class="muted">Se revisó solo con el motor local (ortografía básica).</span> <button type="button" class="btn-link" data-open-settings>Abrir Ajustes</button></div>`
+          : '';
         if (dom.aiDiffContent) {
           if (changesCount === 0) {
-            const noChangeMsg = isEn
-              ? 'Looks good — no spelling errors found.'
-              : 'Todo correcto: no se encontraron faltas de ortografía.';
-            dom.aiDiffContent.innerHTML = `
-              <div class="ai-ok">${noChangeMsg}</div>
-            `;
+            const noChangeMsg = geminiWarning
+              ? (isEn ? 'The local engine found nothing to fix.' : 'El motor local no encontró nada que corregir.')
+              : (isEn ? 'Looks good — no spelling errors found.' : 'Todo correcto: no se encontraron faltas de ortografía.');
+            dom.aiDiffContent.innerHTML = `${geminiWarning}<div class="ai-ok">${noChangeMsg}</div>`;
           } else {
-            dom.aiDiffContent.innerHTML = diffHtml;
+            dom.aiDiffContent.innerHTML = geminiWarning + diffHtml;
           }
+          const openBtn = dom.aiDiffContent.querySelector('[data-open-settings]');
+          if (openBtn) openBtn.addEventListener('click', () => { const b = document.getElementById('btnOpenConfig'); if (b) b.click(); });
         }
+        if (geminiWarning && dom.aiChangesCount && changesCount === 0) dom.aiChangesCount.textContent = 'Gemini no disponible';
 
         if (dom.btnApplyAiChanges) dom.btnApplyAiChanges.disabled = false;
       } else {

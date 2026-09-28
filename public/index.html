@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Kalam:wght@400;700&family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.0">
+  <link rel="stylesheet" href="css/style.css?v=3.3.2">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
@@ -764,7 +764,11 @@
             <div class="form-group">
               <label class="form-label" for="apiKeyInput">Clave de Google Gemini <span class="optional">(opcional)</span></label>
               <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy…" autocomplete="off">
-              <div class="form-help">Gratis en <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>. Se guarda solo en este dispositivo. Sin clave se usa el motor local integrado. Los versículos se insertan con la Biblia importada arriba.</div>
+              <div class="gemini-key-row">
+                <button type="button" id="btnTestGeminiKey" class="btn-secondary btn-sm"><svg class="i"><use href="#i-sparkles"/></svg>Probar clave</button>
+                <span id="geminiKeyStatus" class="gemini-key-status"></span>
+              </div>
+              <div class="form-help">Gratis en <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>. Se guarda solo en este dispositivo. Pega la clave y pulsa <strong>Probar clave</strong>: si funciona, queda guardada en este dispositivo. Sin clave, «Revisar con IA» solo corrige ortografía básica.</div>
             </div>
           </section>
 
@@ -895,13 +899,13 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/engine.js?v=3.3.0"></script>
-  <script src="js/bible.js?v=3.3.0"></script>
-  <script src="js/offline.js?v=3.3.0"></script>
-  <script src="js/sound.js?v=3.3.0"></script>
-  <script src="js/rosco.js?v=3.3.0"></script>
-  <script src="js/game.js?v=3.3.0"></script>
-  <script src="js/notes.js?v=3.3.0"></script>
-  <script src="js/app-shell.js?v=3.3.0"></script>
+  <script src="js/engine.js?v=3.3.2"></script>
+  <script src="js/bible.js?v=3.3.2"></script>
+  <script src="js/offline.js?v=3.3.2"></script>
+  <script src="js/sound.js?v=3.3.2"></script>
+  <script src="js/rosco.js?v=3.3.2"></script>
+  <script src="js/game.js?v=3.3.2"></script>
+  <script src="js/notes.js?v=3.3.2"></script>
+  <script src="js/app-shell.js?v=3.3.2"></script>
 </body>
 </html>

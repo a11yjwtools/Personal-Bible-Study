@@ -3,8 +3,10 @@
 (function () {
   'use strict';
   const GEMINI_KEY = 'ep_gemini_key';
-  function getKey() { try { return localStorage.getItem(GEMINI_KEY) || ''; } catch (e) { return ''; } }
-  function setKey(k) { try { if (k) localStorage.setItem(GEMINI_KEY, k); else localStorage.removeItem(GEMINI_KEY); } catch (e) {} }
+  // Las claves pegadas a veces traen espacios, saltos de línea o comillas: se limpian
+  const cleanKey = (k) => String(k || '').replace(/[\s"'“”‘’]/g, '');
+  function getKey() { try { return cleanKey(localStorage.getItem(GEMINI_KEY)); } catch (e) { return ''; } }
+  function setKey(k) { try { k = cleanKey(k); if (k) localStorage.setItem(GEMINI_KEY, k); else localStorage.removeItem(GEMINI_KEY); } catch (e) {} }
   const process = { env: new Proxy({}, { get: (t, k) => (k === 'GEMINI_API_KEY' ? getKey() : undefined) }) };
   const shims = {
     https: {},
@@ -35,6 +37,96 @@
 const https = require('https');
 const { cleanText } = require('./docParser');
 const dbService = require('./dbService');
+
+// ==========================================================================
+// Llamada a Google Gemini compartida (con mensajes de error claros)
+// ==========================================================================
+// Se prueban varios modelos por si alguno no está disponible para la clave.
+const GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-3.6-flash'];
+
+/** Une el texto de la respuesta (ignora las partes de "razonamiento" del modelo). */
+function geminiText(data) {
+  const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+  return parts.filter(p => p && typeof p.text === 'string' && !p.thought).map(p => p.text).join('').trim();
+}
+
+/** Convierte un error de la API de Gemini en un mensaje comprensible. */
+function friendlyGeminiError(status, apiMessage) {
+  const m = String(apiMessage || '');
+  if (/api key not valid|API_KEY_INVALID|invalid api key/i.test(m) || status === 401) {
+    return 'La clave de Gemini no es válida. Cópiala de nuevo desde Google AI Studio y pégala en Ajustes.';
+  }
+  if (/expired/i.test(m)) return 'La clave de Gemini ha caducado. Crea una nueva en Google AI Studio y pégala en Ajustes.';
+  if (status === 403 || /permission|PERMISSION_DENIED|not been used|disabled/i.test(m)) {
+    return 'Google rechazó la clave (sin permiso). Crea una clave nueva en Google AI Studio (aistudio.google.com/apikey) y pégala en Ajustes.';
+  }
+  if (status === 429 || /quota|RESOURCE_EXHAUSTED|rate/i.test(m)) {
+    return 'Se alcanzó el límite gratuito de Gemini por ahora. Espera un minuto y vuelve a intentarlo.';
+  }
+  if (/location is not supported|User location/i.test(m)) return 'Gemini no está disponible en tu región con esta clave.';
+  if (status >= 500) return 'Los servidores de Gemini no responden ahora mismo. Inténtalo de nuevo en unos minutos.';
+  return m ? `Gemini respondió: ${m}` : `Gemini respondió con un error (${status}).`;
+}
+
+/**
+ * Envía un prompt a Gemini probando los modelos disponibles.
+ * Devuelve el texto de la respuesta o lanza un Error con un mensaje claro.
+ * `accept(text)` puede devolver false para probar el siguiente modelo.
+ */
+async function callGemini(prompt, apiKey, generationConfig = {}, accept) {
+  const key = String(apiKey || '').trim();
+  if (key.length < 10) throw new Error('Falta la clave de Gemini. Añádela en Ajustes.');
+  let lastError = '';
+  for (const model of GEMINI_MODELS) {
+    let response;
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 90000) : null;
+    try {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig }),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+    } catch (e) {
+      if (timer) clearTimeout(timer);
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) throw new Error('Sin conexión a Internet: Gemini necesita conexión.');
+      lastError = e && e.name === 'AbortError' ? 'Gemini tardó demasiado en responder.' : 'No se pudo conectar con Gemini. Revisa tu conexión a Internet.';
+      continue;
+    }
+    if (timer) clearTimeout(timer);
+    if (!response.ok) {
+      const errJson = await response.json().catch(() => ({}));
+      const apiMsg = (errJson.error && errJson.error.message) || '';
+      console.warn(`[Gemini] ${model}: HTTP ${response.status} ${apiMsg}`);
+      const friendly = friendlyGeminiError(response.status, apiMsg);
+      // Una clave mala falla igual con todos los modelos: no seguir probando
+      if (response.status === 401 || response.status === 403 || /api key|API_KEY/i.test(apiMsg)) throw new Error(friendly);
+      lastError = friendly;
+      continue; // 404 (modelo no disponible), 429, 5xx: probar el siguiente
+    }
+    const data = await response.json().catch(() => ({}));
+    const text = geminiText(data);
+    if (!text) {
+      const reason = data.promptFeedback && data.promptFeedback.blockReason;
+      lastError = reason ? `Gemini bloqueó la respuesta (${reason}).` : 'Gemini devolvió una respuesta vacía.';
+      continue;
+    }
+    if (accept && !accept(text)) { lastError = 'Gemini devolvió un formato inesperado.'; continue; }
+    return text;
+  }
+  throw new Error(lastError || 'No se pudo usar Gemini.');
+}
+
+/** Comprueba la clave con una petición mínima. */
+async function testGeminiKey(apiKey) {
+  try {
+    await callGemini('Responde solo con la palabra OK.', apiKey, { temperature: 0, maxOutputTokens: 20 });
+    return { ok: true, message: 'La clave funciona: la revisión con IA usará Google Gemini.' };
+  } catch (e) {
+    return { ok: false, message: e.message };
+  }
+}
 
 /**
  * Detecta si el texto está en español ('es') o en inglés ('en')
@@ -338,7 +430,7 @@ function sanitizeAndVerifyRosco(candidates, rawText, isEn) {
  */
 async function generateRoscoWithGemini(text, topicsStr, apiKey) {
   const isEn = detectLanguage(text) === 'en';
-  const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
+  const models = GEMINI_MODELS;
   const truncatedText = text.slice(0, 35000);
 
   const prompt = isEn
@@ -418,7 +510,7 @@ ${truncatedText}`;
 
       if (!response.ok) continue;
       const data = await response.json();
-      let rawOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      let rawOutput = geminiText(data);
       if (!rawOutput) continue;
 
       let cleaned = rawOutput.trim();
@@ -527,7 +619,7 @@ function generateRoscoLocally(rawText, topicsStr) {
  */
 async function generateWithGemini(text, topicTitle, apiKey, count = 10) {
   const isEn = detectLanguage(text) === 'en';
-  const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
+  const models = GEMINI_MODELS;
   const truncatedText = text.slice(0, 35000);
 
   const prompt = isEn
@@ -610,7 +702,7 @@ ${truncatedText}`;
       if (!response.ok) continue;
 
       const data = await response.json();
-      const rawOutput = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const rawOutput = geminiText(data);
       if (!rawOutput) continue;
 
       let cleaned = rawOutput.trim();
@@ -1011,8 +1103,6 @@ async function improveNoteWithAI(content, action = 'all', noteTitle = '', custom
 }
 
 async function processNoteWithGemini(content, action, noteTitle, apiKey, lang = 'es') {
-  const models = ['gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
-  
   let instructions = '';
   if (lang === 'en') {
     // Instrucciones y correcciones 100% en Inglés
@@ -1073,41 +1163,9 @@ TÍTULO DEL APUNTE: ${noteTitle || 'Apunte de Estudio'}
 CONTENIDO ORIGINAL:
 ${content.slice(0, 30000)}`;
 
-  let lastErr = '';
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const payload = {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.25 }
-      };
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        const msg = errJson.error?.message || `HTTP ${response.status}`;
-        console.warn(`[AI-Note] Error con modelo ${model}:`, msg);
-        lastErr = msg;
-        continue;
-      }
-
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text && text.trim().length > 0) {
-        return text.trim();
-      }
-    } catch (e) {
-      console.warn(`[AI-Note] Excepción con modelo ${model}:`, e.message);
-      lastErr = e.message;
-    }
-  }
-
-  throw new Error(lastErr || 'Gemini no devolvió respuesta para la nota.');
+  const text = await callGemini(prompt, apiKey, { temperature: 0.25 });
+  // Quitar un posible bloque ```markdown ... ``` alrededor de la respuesta
+  return text.replace(/^```(?:markdown|md)?\s*\n/i, '').replace(/\n?```\s*$/, '').trim();
 }
 
 /**
@@ -1489,6 +1547,8 @@ function processNoteLocally(content, action, noteTitle, lang = 'es') {
 
 module.exports = {
   detectLanguage,
+  callGemini,
+  testGeminiKey,
   generateQuestionsFromText,
   generateRoscoQuestions,
   improveNoteWithAI
@@ -1744,18 +1804,7 @@ async function fetchWithGeminiFallback(parsed, lang) {
   const prompt = `Devuelve únicamente el texto literal exacto de la cita bíblica "${parsed.citation}" según la ${targetLang} de los testigos de Jehová (jw.org).
 No incluyas explicaciones, ni comentarios, ni introducciones, ni comillas. Solo el texto bíblico literal.`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.1 }
-    })
-  });
-
-  const data = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const rawText = await require('./aiService').callGemini(prompt, apiKey, { temperature: 0.1 });
   const text = rawText.trim().replace(/^"|"$/g, '');
 
   if (!text) {

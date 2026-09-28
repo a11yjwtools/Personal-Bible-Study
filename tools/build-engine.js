@@ -21,8 +21,10 @@ let out = `// ARCHIVO GENERADO por tools/build-engine.js — no editar a mano.
 (function () {
   'use strict';
   const GEMINI_KEY = 'ep_gemini_key';
-  function getKey() { try { return localStorage.getItem(GEMINI_KEY) || ''; } catch (e) { return ''; } }
-  function setKey(k) { try { if (k) localStorage.setItem(GEMINI_KEY, k); else localStorage.removeItem(GEMINI_KEY); } catch (e) {} }
+  // Las claves pegadas a veces traen espacios, saltos de línea o comillas: se limpian
+  const cleanKey = (k) => String(k || '').replace(/[\\s"'“”‘’]/g, '');
+  function getKey() { try { return cleanKey(localStorage.getItem(GEMINI_KEY)); } catch (e) { return ''; } }
+  function setKey(k) { try { k = cleanKey(k); if (k) localStorage.setItem(GEMINI_KEY, k); else localStorage.removeItem(GEMINI_KEY); } catch (e) {} }
   const process = { env: new Proxy({}, { get: (t, k) => (k === 'GEMINI_API_KEY' ? getKey() : undefined) }) };
   const shims = {
     https: {},

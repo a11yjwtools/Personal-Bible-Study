@@ -244,18 +244,7 @@ async function fetchWithGeminiFallback(parsed, lang) {
   const prompt = `Devuelve únicamente el texto literal exacto de la cita bíblica "${parsed.citation}" según la ${targetLang} de los testigos de Jehová (jw.org).
 No incluyas explicaciones, ni comentarios, ni introducciones, ni comillas. Solo el texto bíblico literal.`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.1 }
-    })
-  });
-
-  const data = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const rawText = await require('./aiService').callGemini(prompt, apiKey, { temperature: 0.1 });
   const text = rawText.trim().replace(/^"|"$/g, '');
 
   if (!text) {

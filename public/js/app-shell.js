@@ -196,9 +196,45 @@
       });
     }
 
+    // ----------------------------------------------------------------
+    // Ajustes: probar la clave de Gemini
+    // ----------------------------------------------------------------
+    const keyInput = $('apiKeyInput');
+    const keyStatus = $('geminiKeyStatus');
+    const btnTestKey = $('btnTestGeminiKey');
+    const eng = () => window.EPEngine;
+    const mask = (k) => (k.length > 10 ? `${k.slice(0, 6)}…${k.slice(-4)}` : '');
+    function setKeyStatus(text, kind) {
+      if (!keyStatus) return;
+      keyStatus.textContent = text;
+      keyStatus.className = `gemini-key-status${kind ? ` is-${kind}` : ''}`;
+    }
+    function renderKeyStatus() {
+      if (!eng()) return;
+      const k = eng().getGeminiKey();
+      setKeyStatus(k ? `Clave guardada en este dispositivo: ${mask(k)}` : 'No hay ninguna clave guardada en este dispositivo.', k ? '' : 'error');
+    }
+    if (btnTestKey) btnTestKey.addEventListener('click', async () => {
+      if (!eng()) return;
+      const typed = keyInput ? keyInput.value.replace(/\s+/g, '') : '';
+      const key = typed || eng().getGeminiKey();
+      if (!key) { setKeyStatus('Pega primero tu clave de Gemini.', 'error'); return; }
+      btnTestKey.disabled = true;
+      setKeyStatus('Probando la clave…', '');
+      const r = await eng().ai.testGeminiKey(key);
+      btnTestKey.disabled = false;
+      if (r.ok) {
+        eng().setGeminiKey(key); // guardarla ya, aunque no se pulse "Guardar ajustes"
+        if (keyInput) keyInput.value = '';
+        setKeyStatus(`✓ ${r.message} (${mask(key)})`, 'ok');
+      } else {
+        setKeyStatus(r.message, 'error');
+      }
+    });
+
     const configModal = $('configModal');
     if (configModal) new MutationObserver(() => {
-      if (configModal.classList.contains('active')) renderBibleStatus();
+      if (configModal.classList.contains('active')) { renderBibleStatus(); renderKeyStatus(); }
     }).observe(configModal, { attributes: true, attributeFilter: ['class'] });
     renderBibleStatus();
   });

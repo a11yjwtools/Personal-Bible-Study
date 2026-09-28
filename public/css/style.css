@@ -1488,3 +1488,12 @@ main { min-height: calc(100vh - var(--header-h)); }
   }
   .notion-workspace.sidebar-collapsed .note-properties { max-width: 900px; }
 }
+
+/* Ajustes · clave de Gemini */
+.gemini-key-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.gemini-key-status { font-size: 13px; color: var(--text-muted); }
+.gemini-key-status.is-ok { color: var(--success); }
+.gemini-key-status.is-error { color: var(--danger); }
+.ai-gemini-warning { margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background: var(--danger-soft); line-height: 1.5; font-size: 14px; }
+.ai-gemini-warning .muted { color: var(--text-2); }
+.btn-link { background: none; border: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
