@@ -1543,7 +1543,7 @@
       try { localStorage.setItem('study_last_note', note.id); } catch (e) { /* ignorar */ }
 
       if (dom.emptyEditorPlaceholder) dom.emptyEditorPlaceholder.style.display = 'none';
-      if (dom.activeEditorContainer) dom.activeEditorContainer.style.display = 'block';
+      if (dom.activeEditorContainer) dom.activeEditorContainer.style.display = '';
       if (dom.aiDiffPanel) dom.aiDiffPanel.style.display = 'none';
       if (dom.paperToolbar) dom.paperToolbar.style.display = 'flex';
 
@@ -3226,12 +3226,18 @@
 
     // Botón para colapsar/expandir sidebar (Modo Estudio Ampliado)
     if (dom.btnToggleSidebar) {
-      dom.btnToggleSidebar.addEventListener('click', () => {
-        notesState.isSidebarCollapsed = !notesState.isSidebarCollapsed;
-        dom.notionSection.classList.toggle('sidebar-collapsed', notesState.isSidebarCollapsed);
-        dom.btnToggleSidebar.classList.toggle('active', notesState.isSidebarCollapsed);
-        dom.btnToggleSidebar.title = notesState.isSidebarCollapsed ? 'Mostrar el menú' : 'Modo concentración (ocultar menú)';
-      });
+      const applyFocusMode = (on) => {
+        notesState.isSidebarCollapsed = on;
+        dom.notionSection.classList.toggle('sidebar-collapsed', on);
+        dom.btnToggleSidebar.classList.toggle('active', on);
+        dom.btnToggleSidebar.title = on ? 'Salir del modo concentración (mostrar el menú)' : 'Modo concentración (cuaderno a pantalla completa)';
+        try { localStorage.setItem('study_focus_mode', on ? 'true' : 'false'); } catch (e) {}
+      };
+      dom.btnToggleSidebar.addEventListener('click', () => applyFocusMode(!notesState.isSidebarCollapsed));
+      // Recordar el modo concentración entre sesiones (solo en pantallas grandes)
+      try {
+        if (localStorage.getItem('study_focus_mode') === 'true' && window.matchMedia('(min-width: 901px)').matches) applyFocusMode(true);
+      } catch (e) {}
     }
 
     // Botón de acción principal contextual en el sidebar y en la barra de herramientas del cuaderno

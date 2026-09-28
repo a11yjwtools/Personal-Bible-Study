@@ -1445,3 +1445,46 @@ main { min-height: calc(100vh - var(--header-h)); }
 @media (max-width: 600px) {
   .bible-meta { order: 3; flex-basis: 100%; padding-left: 18px; }
 }
+
+/* ==========================================================================
+   Modo concentración: el cuaderno ocupa toda la pantalla
+   ========================================================================== */
+@media (min-width: 901px) {
+  .notion-workspace.sidebar-collapsed { grid-template-columns: minmax(0, 1fr); }
+  .notion-workspace.sidebar-collapsed .notion-main-area { padding: 0; }
+  .notion-workspace.sidebar-collapsed .active-editor-card {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    min-height: calc(100vh - var(--header-h));
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .notion-workspace.sidebar-collapsed .active-editor-card[style*="none"] { display: none; }
+  .notion-workspace.sidebar-collapsed .paper-notebook-sheet {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
+  }
+  .notion-workspace.sidebar-collapsed .paper-notebook-sheet > .doc-inner { padding: 0 48px 0 72px; }
+  .notion-workspace.sidebar-collapsed .paper-notebook-sheet > .doc-inner:last-child {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .notion-workspace.sidebar-collapsed .editor-textarea-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .notion-workspace.sidebar-collapsed .notion-rich-editor {
+    flex: 1;
+    min-height: 60vh;
+    padding-bottom: 30vh; /* siempre queda hoja libre debajo para seguir escribiendo */
+  }
+  .notion-workspace.sidebar-collapsed .note-properties { max-width: 900px; }
+}
