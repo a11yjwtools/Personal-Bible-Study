@@ -1,28 +1,11 @@
-/* Ventana «Preguntar a Copilot» (WOL) — usa los estilos de ventanas de la app */
+/* Panel lateral «WOL» (búsqueda en la WOL y Copilot) — usa los colores de la app */
 .wol-open-btn { margin-left: 6px; }
+.wol-open-btn[aria-expanded="true"] { background: var(--accent-soft-2); }
 
-#copilotWolModal .modal-content { max-width: 560px; }
-.cwol-header {
-  padding: 10px 12px;
-  border-radius: var(--r-md);
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-soft-2);
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 0.92rem;
-  user-select: none;
-}
-.cwol-text { width: 100%; min-height: 140px; resize: vertical; font-family: var(--font-read); line-height: 1.5; }
-.cwol-status { margin-top: 10px; font-size: 0.85rem; color: var(--text-2); min-height: 1.2em; }
-.cwol-status.ok { color: var(--success); }
-.cwol-status.error { color: var(--danger); }
-#copilotWolModal [hidden] { display: none !important; }
-
-/* Panel de la Biblioteca en línea (WOL) */
 .wolp {
   position: fixed; top: 0; right: 0; bottom: 0;
-  width: min(560px, 100%);
-  display: flex; flex-direction: column;
+  width: min(380px, 100%);
+  display: flex; flex-direction: column; gap: 4px;
   background: var(--surface); color: var(--text);
   border-left: 1px solid var(--border-strong);
   box-shadow: var(--shadow-lg);
@@ -32,37 +15,39 @@
   z-index: 400;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow-y: auto;
 }
 .wolp.open { transform: translateX(0); }
-.wolp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
-.wolp-title { font-weight: 700; color: var(--accent); white-space: nowrap; }
-.wolp-head-actions { display: flex; align-items: center; gap: 6px; }
-.wolp-btn { background: var(--surface); color: var(--text-2); border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 5px 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.wolp-btn:hover { background: var(--surface-2); color: var(--text); }
+.wolp [hidden] { display: none !important; }
+
+.wolp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 10px 0 12px; border-bottom: 1px solid var(--border); }
+.wolp-tabs { display: flex; gap: 2px; }
+.wolp-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 10px; font-size: 0.86rem; font-weight: 600; color: var(--text-2); cursor: pointer; }
+.wolp-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .wolp-close { background: none; border: none; color: var(--text-2); font-size: 1.05rem; padding: 4px 8px; cursor: pointer; border-radius: var(--r-sm); }
 .wolp-close:hover { background: var(--surface-2); }
-.wolp-search { display: flex; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
-.wolp-input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-size: 0.95rem; }
-.wolp-input:focus { outline: none; box-shadow: var(--focus); border-color: var(--accent); }
-.wolp-lang { padding: 6px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); }
-.wolp-go { background: var(--accent); color: var(--accent-contrast); border: none; border-radius: var(--r-sm); padding: 8px 14px; font-weight: 600; cursor: pointer; }
-.wolp-go:hover { background: var(--accent-hover); }
-.wolp-body { flex: 1; position: relative; background: var(--surface-sunken); }
-.wolp-empty { padding: 24px 20px; color: var(--text-3); font-size: 0.9rem; line-height: 1.6; text-align: center; }
-.wolp-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; }
-.wolp-foot { padding: 8px 12px; font-size: 0.75rem; color: var(--text-3); border-top: 1px solid var(--border); }
-.wolp [hidden] { display: none !important; }
-#wolBtnActive, .wol-open-btn[aria-expanded="true"] { background: var(--accent-soft-2); }
 
-/* Pantallas grandes: el apunte y la WOL lado a lado */
-@media (min-width: 1200px) {
-  body.wolp-open #notionSection { padding-right: min(560px, 45vw); }
-  body.wolp-open .wolp { width: min(560px, 45vw); }
+.wolp-section { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 4px; }
+.wolp-label { font-size: 0.8rem; font-weight: 600; color: var(--text-2); }
+.wolp-field { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-family: var(--font-read); font-size: 0.95rem; line-height: 1.45; resize: vertical; }
+.wolp-field:focus { outline: none; box-shadow: var(--focus); border-color: var(--accent); }
+.wolp-fixed { padding: 9px 11px; border-radius: var(--r-md); background: var(--accent-soft); border: 1px solid var(--accent-soft-2); color: var(--accent); font-weight: 600; font-size: 0.88rem; user-select: none; }
+.wolp-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.wolp-primary, .wolp-secondary { flex: 1; min-width: 130px; border-radius: var(--r-sm); padding: 9px 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+.wolp-primary { background: var(--accent); color: var(--accent-contrast); border: none; }
+.wolp-primary:hover { background: var(--accent-hover); }
+.wolp-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
+.wolp-secondary:hover { background: var(--surface-2); }
+.wolp-help { margin: 2px 0 0; font-size: 0.78rem; line-height: 1.5; color: var(--text-3); }
+.wolp-status { padding: 6px 16px 14px; font-size: 0.84rem; color: var(--text-2); min-height: 1.2em; }
+.wolp-status.ok { color: var(--success); }
+.wolp-status.error { color: var(--danger); }
+
+/* Pantallas grandes: el apunte se aparta para dejar sitio al panel */
+@media (min-width: 1100px) {
+  body.wolp-open #notionSection { padding-right: 380px; }
 }
-/* Móvil: pantalla completa */
+/* Móvil: panel a pantalla completa */
 @media (max-width: 700px) {
   .wolp { width: 100%; border-left: none; }
-  .wolp-btn.wolp-side { display: none; }
 }
-/* La ventana de Copilot por encima del panel */
-#copilotWolModal { z-index: 600; }
