@@ -2,910 +2,1107 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Estudio Personal</title>
-  <meta name="description" content="Cuaderno personal de estudio bíblico que funciona sin conexión y se sincroniza con tu GitHub privado.">
-  <script>
-    // Aplicar el tema antes de pintar para evitar parpadeos
-    (function () {
-      try {
-        var t = localStorage.getItem('study_theme');
-        if (t !== 'light' && t !== 'dark') t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-        document.documentElement.dataset.theme = t;
-      } catch (e) { document.documentElement.dataset.theme = 'light'; }
-    })();
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estudio Personal - Notion & Juegos con IA</title>
+  <!-- Google Fonts: Caligrafía Natural y Manuscrita para Apuntes de Estudio -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Kalam:wght@400;700&family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.2">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Kalam:wght@300;400;700&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260920_v7">
+  <link rel="stylesheet" href="css/wol-assistant.css?v=20261002_v1">
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#c99a4e">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Estudio">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Estudio Personal">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="icon" href="icons/icon.svg">
 </head>
 <body>
-  <!-- Iconos (sprite SVG) -->
-  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
-    <defs>
-      <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></symbol>
-      <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
-      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.3-4.3"/></symbol>
-      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
-      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
-      <symbol id="i-settings" viewBox="0 0 24 24"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
-      <symbol id="i-volume-x" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></symbol>
-      <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
-      <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></symbol>
-      <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/></symbol>
-      <symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
-      <symbol id="i-minimize" viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/></symbol>
-      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-      <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3.5 13.8 8.2 18.5 10l-4.7 1.8L12 16.5l-1.8-4.7L5.5 10l4.7-1.8z"/><path d="M19 3v4M17 5h4M5 16v4M3 18h4"/></symbol>
-      <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
-      <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="1.5"/></symbol>
-      <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2.5V9M12 15v6.5M2.5 12H9M15 12h6.5M5.3 5.3l4.6 4.6M14.1 14.1l4.6 4.6M18.7 5.3l-4.6 4.6M9.9 14.1l-4.6 4.6"/></symbol>
-      <symbol id="i-panel-left" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></symbol>
-      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></symbol>
-      <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
-      <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
-      <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
-      <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
-      <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
-      <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
-      <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.8 8.8a2 2 0 0 0 2.8 0l7.2-7.2a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></symbol>
-      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
-      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
-      <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z"/></symbol>
-      <symbol id="i-cloud-off" viewBox="0 0 24 24"><path d="m2 2 20 20"/><path d="M5.8 5.8A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.3-.2M21.5 16.5A4.5 4.5 0 0 0 17.5 10h-1.8A7 7 0 0 0 10 5.1"/></symbol>
-      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16M3 12a9 9 0 0 1 15.4-6.4L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></symbol>
-      <symbol id="i-log-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
-      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
-      <symbol id="i-bold" viewBox="0 0 24 24"><path d="M7 12h8a4 4 0 0 1 0 8H7V4h7a4 4 0 0 1 0 8"/></symbol>
-      <symbol id="i-italic" viewBox="0 0 24 24"><path d="M19 4h-9M14 20H5M15 4 9 20"/></symbol>
-      <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
-      <symbol id="i-quote" viewBox="0 0 24 24"><path d="M6 7h4v4c0 3-1.7 5-4 6M14 7h4v4c0 3-1.7 5-4 6"/></symbol>
-      <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3h6c0-1.1.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></symbol>
-      <symbol id="i-bible" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M12 6v7M9.5 8.5h5"/></symbol>
-      <symbol id="i-type" viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></symbol>
-      <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
-      <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></symbol>
-      <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
-      <symbol id="i-crown" viewBox="0 0 24 24"><path d="m2 5 3.5 12h13L22 5l-6 6-4-7-4 7z"/><path d="M5 21h14"/></symbol>
-      <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
-      <symbol id="i-pilcrow" viewBox="0 0 24 24"><path d="M13 4v16M17 4v16M19 4H9.5a4.5 4.5 0 0 0 0 9H13"/></symbol>
-      <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol>
-      <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01"/></symbol>
-      <symbol id="i-github" viewBox="0 0 24 24"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></symbol>
-      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
-      <symbol id="i-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></symbol>
-      <symbol id="i-feather" viewBox="0 0 24 24"><path d="M20.2 12.2a6 6 0 0 0-8.5-8.5L5 10.5V19h8.5z"/><path d="M16 8 2 22M17.5 15H9"/></symbol>
-    </defs>
-  </svg>
-
   <canvas id="confettiCanvas"></canvas>
-  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
-  <!-- Compatibilidad con el aviso antiguo -->
-  <div id="syncToast" hidden><span id="syncToastIcon"></span><span id="syncToastText"></span></div>
+  <div id="syncToast" style="display: none; position: fixed; top: 18px; right: 24px; z-index: 999999; background: #1e293b; color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); padding: 10px 18px; border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); font-size: 0.88rem; align-items: center; gap: 8px; font-weight: 500; transition: all 0.3s ease;">
+    <span id="syncToastIcon">🔄</span> <span id="syncToastText">Sincronizando notas...</span>
+  </div>
 
-  <!-- ============================== CABECERA ============================== -->
-  <header class="app-header">
-    <div class="header-left">
-      <button id="btnMobileMenu" class="icon-btn only-mobile" type="button" aria-label="Abrir menú">
-        <svg class="i"><use href="#i-menu"/></svg>
-      </button>
-      <a class="brand" href="./" aria-label="Estudio Personal">
-        <img class="brand-mark" src="icons/icon.svg" alt="" width="28" height="28">
-        <span class="brand-name">Estudio Personal</span>
-      </a>
-    </div>
-
-    <nav class="nav-tabs" aria-label="Secciones">
-      <button id="btnTabNotion" class="nav-tab-btn active" type="button">
-        <svg class="i"><use href="#i-book-open"/></svg><span>Apuntes</span>
-      </button>
-      <button id="btnTabGame" class="nav-tab-btn" type="button">
-        <svg class="i"><use href="#i-trophy"/></svg><span>Repaso</span>
-      </button>
-    </nav>
-
-    <div class="header-search-container">
-      <div class="search-input-wrapper">
-        <svg class="i search-lens-icon"><use href="#i-search"/></svg>
-        <input type="text" id="globalSearchInput" class="header-search-input" placeholder="Buscar en tus apuntes" autocomplete="off" aria-label="Buscar">
-        <kbd class="search-kbd">Ctrl K</kbd>
-        <button id="btnSearchClear" class="search-clear-btn" type="button" aria-label="Borrar búsqueda" style="display: none;">
-          <svg class="i"><use href="#i-x"/></svg>
-        </button>
+  <!-- Encabezado Superior Principal -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">📖</div>
+      <div>
+        <div class="brand-title">ESTUDIO PERSONAL</div>
+        <div class="brand-subtitle">Cuaderno de Apuntes & Juegos con IA</div>
       </div>
     </div>
 
+    <!-- Barra Central: Selector de Pestañas de Navegación -->
+    <div class="nav-tabs">
+      <button id="btnTabNotion" class="nav-tab-btn active">
+        📓 Mis Apuntes de Estudio
+      </button>
+      <button id="btnTabGame" class="nav-tab-btn">
+        🏆 Concurso y Repaso
+      </button>
+    </div>
+
+    <!-- Buscador Global con Lupa (🔍) -->
+    <div class="header-search-container">
+      <div class="search-input-wrapper">
+        <span class="search-lens-icon">🔍</span>
+        <input 
+          type="text" 
+          id="globalSearchInput" 
+          class="header-search-input" 
+          placeholder="Buscar palabras en todas tus notas... (Ctrl+K)" 
+          autocomplete="off"
+        >
+        <button id="btnSearchClear" class="search-clear-btn" type="button" title="Borrar palabra buscada" aria-label="Borrar búsqueda" style="display: none;">✕</button>
+      </div>
+    </div>
+
+    <!-- Acciones de Encabezado -->
     <div class="header-actions">
-      <button id="syncStatusPill" class="sync-pill" type="button" data-state="idle" title="Estado de la sincronización">
-        <span class="sync-dot"></span><span class="sync-label">Preparando…</span>
+      <button id="btnToggleTheme" class="btn-icon theme-toggle-btn" title="Cambiar entre Modo Día y Modo Noche">
+        <span id="themeToggleIcon">☀️</span> <span id="themeToggleText">Modo Día</span>
       </button>
-      <button id="btnMobileSearch" class="icon-btn only-mobile" type="button" aria-label="Buscar">
-        <svg class="i"><use href="#i-search"/></svg>
+      <button id="btnToggleSound" class="btn-icon" title="Activar/Silenciar efectos y música">
+        🔇 <span>Música Off</span>
       </button>
-      <button id="btnInstallApp" class="icon-btn" type="button" style="display: none;" title="Instalar como aplicación">
-        <svg class="i"><use href="#i-download"/></svg>
+      <button id="btnOpenConfig" class="btn-icon" title="Configurar API de Gemini y Ajustes">
+        ⚙️ <span>Ajustes</span>
       </button>
-      <button id="btnToggleSound" class="icon-btn game-only" type="button" title="Activar o silenciar música y efectos">
-        <svg class="i"><use href="#i-volume-x"/></svg>
+      <button id="btnInstallApp" class="btn-icon" style="display: none; color: var(--gold-primary); border-color: rgba(201, 154, 78, 0.4); background: rgba(201, 154, 78, 0.1);" title="Instalar en tu ordenador como aplicación nativa de escritorio">
+        📲 <span>Instalar App</span>
       </button>
-      <button id="btnToggleTheme" class="icon-btn" type="button" title="Cambiar tema claro/oscuro">
-        <svg class="i" id="themeToggleIcon"><use href="#i-moon"/></svg><span id="themeToggleText" class="sr-only">Modo oscuro</span>
-      </button>
-      <button id="btnToggleFullscreen" class="icon-btn hide-mobile" type="button" title="Pantalla completa">
-        <svg class="i" id="fullscreenIcon"><use href="#i-maximize"/></svg>
-      </button>
-      <button id="btnOpenConfig" class="icon-btn" type="button" title="Ajustes y sincronización">
-        <svg class="i"><use href="#i-settings"/></svg>
-      </button>
+
+      <!-- Grupo de Controles de Ventana en la Esquina Superior Derecha -->
+      <div class="header-window-controls" title="Controles de ventana y pantalla">
+        <button id="btnWinMinimize" class="win-control-btn win-minimize" type="button" title="Minimizar (Salir de pantalla completa)" aria-label="Minimizar">
+          <span class="win-icon">─</span>
+        </button>
+        <button id="btnToggleFullscreen" class="win-control-btn win-fullscreen" type="button" title="Pantalla Completa (Ocultar navegador) / Restaurar ventana (Ver URL)" aria-label="Pantalla Completa / Restaurar ventana">
+          <span id="fullscreenIcon" class="win-icon">🗖</span>
+        </button>
+        <button id="btnWinClose" class="win-control-btn win-close" type="button" title="Cerrar / Salir de pantalla completa" aria-label="Cerrar">
+          <span class="win-icon">✕</span>
+        </button>
+      </div>
     </div>
   </header>
 
   <main>
-    <!-- ========================= SECCIÓN: APUNTES ========================= -->
+    <!-- ================================================================ -->
+    <!-- SECCIÓN 1: ESPACIO DE TRABAJO ESTILO CUADERNO / NOTION (ESTUDIO) -->
+    <!-- ================================================================ -->
     <section id="notionSection" class="notion-workspace">
-      <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
-      <div id="notionSidebar" class="notion-sidebar nav-panes">
-      <aside class="pane pane-folders" aria-label="Carpetas">
+      <!-- Barra lateral izquierda (Sidebar) -->
+      <aside id="notionSidebar" class="notion-sidebar">
+        <!-- Acciones principales del Menú: Añadir Entrada + Generar Preguntas con IA -->
         <div class="sidebar-top-action">
-          <button id="btnSidebarMainAction" class="btn-primary btn-full" type="button">
-            <svg class="i"><use href="#i-plus"/></svg><span>Nueva entrada</span>
+          <button id="btnSidebarMainAction" class="btn-primary btn-full" title="Añadir una entrada o documento a la sección activa">
+            ➕ Añadir Día al Mes
           </button>
-        </div>
-
-        <div class="sidebar-block">
-          <div class="sidebar-section-title">
-            <span>Año</span>
-            <button id="btnOpenNewYearModal" class="link-btn" type="button" title="Añadir un año">+ Año</button>
+          <div class="sidebar-questions-action-row">
+            <button id="btnSidebarGenerateQuestions" class="btn-sidebar-ai-questions" title="Generar preguntas con IA para el apunte abierto">
+              ⚡ Generar Preguntas con IA
+            </button>
+            <button id="btnSidebarViewQuestions" class="btn-sidebar-view-questions" title="Ver preguntas del concurso guardadas de este apunte">
+              🏆 <span id="sidebarQuestionsCount">0</span>
+            </button>
           </div>
-          <div id="yearsPillsContainer" class="years-pills-row"></div>
         </div>
 
-        <div class="sidebar-block sidebar-block-grow">
-          <div class="sidebar-section-title">
-            <span>Carpetas</span>
-            <button id="btnOpenNewCategoryModal" class="link-btn" type="button" title="Nueva categoría">+ Categoría</button>
+        <!-- Barra de Años Disponibles con Botón para Añadir Nuevo Año -->
+        <div class="sidebar-years-bar">
+          <div class="years-label">
+            <span>📅 AÑOS DE ESTUDIO:</span>
+            <button id="btnOpenNewYearModal" class="btn-add-year-small" title="Añadir un nuevo año (ej: 2027)">
+              + Añadir Año
+            </button>
           </div>
-          <div id="sidebarTree" class="sidebar-tree"></div>
+          <div id="yearsPillsContainer" class="years-pills-row">
+            <!-- Píldoras de años cargadas dinámicamente -->
+          </div>
         </div>
 
-      </aside>
-      <aside class="pane pane-list" aria-label="Lista de apuntes">
+        <!-- Árbol de Categorías Jerárquicas -->
+        <div class="sidebar-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>📂 CATEGORÍAS</span>
+          <button id="btnOpenNewCategoryModal" class="btn-add-year-small" title="Añadir una nueva categoría o subcategoría personalizada">+ Categoría</button>
+        </div>
+        <div id="sidebarTree" class="sidebar-tree">
+          <!-- Renderizado dinámicamente -->
+        </div>
+
+        <!-- Lista de Apuntes Diarios de la Categoría/Mes Seleccionado -->
         <div class="sidebar-notes-header">
-          <span id="currentCategoryTitle" class="current-cat-name">Apuntes</span>
-          <span id="notesCountBadge" class="count-badge">0</span>
+          <span id="currentCategoryTitle" class="current-cat-name">Todos los Apuntes</span>
+          <span id="notesCountBadge" class="cat-count-badge">0 días</span>
         </div>
-        <div id="notesListContainer" class="notes-list-container"></div>
+        <div id="notesListContainer" class="notes-list-container">
+          <!-- Tarjetas de días ordenadas cronológicamente con separadores -->
+        </div>
       </aside>
-      </div>
 
+      <!-- Panel Central / Área de Estudio y Escritura de la Nota Activa -->
       <div class="notion-main-area">
+        <!-- Estado vacío cuando no hay nota seleccionada -->
         <div id="emptyEditorPlaceholder" class="empty-editor-state">
-          <div class="empty-illustration"><svg class="i"><use href="#i-feather"/></svg></div>
-          <h2>Elige o crea una entrada</h2>
-          <p>Selecciona un mes o una carpeta en el menú, o pulsa <strong>Nueva entrada</strong> para empezar a escribir.</p>
+          <div class="empty-icon">✍️</div>
+          <h2>Selecciona o crea una entrada de estudio</h2>
+          <p>Elige un mes en el menú lateral o pulsa <strong>"Nuevo Día de Apuntes"</strong> para abrir tu cuaderno de estudio con letra manuscrita y papel claro.</p>
         </div>
 
-        <div id="activeEditorContainer" class="active-editor-card" style="display: none;">
-          <!-- Barra superior del documento -->
+        <!-- Contenedor del Cuaderno / Editor Activo -->
+        <div id="activeEditorContainer" class="active-editor-card paper-warm-parchment" style="display: none;">
+          <!-- Barra superior del editor (Breadcrumbs + Modo Ampliado + Guardado + Acciones) -->
           <div class="editor-top-bar">
-            <div id="noteBreadcrumbs" class="editor-breadcrumbs"></div>
+            <div id="noteBreadcrumbs" class="editor-breadcrumbs">
+              <!-- Breadcrumbs generados dinámicamente -->
+            </div>
             <div class="editor-top-actions">
-              <span id="saveStatusText" class="save-status-badge status-saved">Guardado</span>
-              <div class="btn-group">
-                <button id="btnSidebarGenerateQuestions" class="tool-btn" type="button" title="Generar preguntas de repaso con IA">
-                  <svg class="i"><use href="#i-sparkles"/></svg><span class="hide-narrow">Preguntas IA</span>
-                </button>
-                <button id="btnSidebarViewQuestions" class="tool-btn" type="button" title="Ver las preguntas guardadas de este apunte">
-                  <svg class="i"><use href="#i-help"/></svg><span id="sidebarQuestionsCount">0</span>
-                </button>
-              </div>
-              <div class="btn-group">
-                <button id="btnPlayNoteGame" class="tool-btn" type="button" title="Repasar este apunte con Saber y Ganar">
-                  <svg class="i"><use href="#i-target"/></svg><span class="hide-narrow">Saber y Ganar</span>
-                </button>
-                <button id="btnPlayNoteRosco" class="tool-btn" type="button" title="Repasar este apunte con el Rosco A‑Z">
-                  <svg class="i"><use href="#i-wheel"/></svg><span class="hide-narrow">Rosco</span>
-                </button>
-              </div>
-              <button id="btnToggleSidebar" class="tool-btn hide-mobile" type="button" title="Modo concentración (cuaderno a pantalla completa)">
-                <svg class="i"><use href="#i-panel-left"/></svg>
+              <button id="btnToggleSidebar" class="btn-secondary" title="Ocultar/Mostrar menú lateral para máxima concentración">
+                📖 Modo Estudio Ampliado
               </button>
-              <button id="btnDeleteNote" class="tool-btn tool-btn-danger" type="button" title="Eliminar esta entrada">
-                <svg class="i"><use href="#i-trash"/></svg>
+              <span id="saveStatusText" class="save-status-badge status-saved">✓ Guardado</span>
+              <button id="btnPlayNoteGame" class="btn-play-action" title="Jugar con las preguntas de este apunte en Saber y Ganar">
+                🎯 Saber y Ganar
+              </button>
+              <button id="btnPlayNoteRosco" class="btn-play-action rosco-style" title="Jugar con las preguntas de este apunte en la Ruleta A-Z">
+                🎡 El Rosco A-Z
+              </button>
+              <button id="btnDeleteNote" class="btn-danger-icon" title="Eliminar esta entrada">
+                🗑️
               </button>
             </div>
           </div>
 
-          <!-- Navegación entre resultados de búsqueda -->
+          <!-- Barra Flotante de Navegación de Referencias de Búsqueda -->
           <div id="searchNavBanner" class="search-nav-banner" style="display: none;">
             <div class="search-nav-left">
-              <svg class="i"><use href="#i-search"/></svg>
-              <span id="searchNavQueryText" class="search-nav-query">"…"</span>
-              <span id="searchNavIndexText" class="search-nav-counter">1 de 1</span>
+              <span class="search-nav-icon">🔍</span>
+              <span class="search-nav-label">Búsqueda activa:</span>
+              <span id="searchNavQueryText" class="search-nav-query">"..."</span>
+              <span id="searchNavIndexText" class="search-nav-counter">Ref. 1 de 1</span>
             </div>
             <div class="search-nav-right">
-              <button id="btnSearchNavPrev" class="tool-btn" type="button" title="Anterior"><svg class="i"><use href="#i-chevron-left"/></svg></button>
-              <button id="btnSearchNavNext" class="tool-btn" type="button" title="Siguiente"><svg class="i"><use href="#i-chevron-right"/></svg></button>
-              <button id="btnSearchNavReturn" class="tool-btn" type="button" title="Ver todos los resultados"><span>Todos (<span id="searchNavTotalCount">0</span>)</span></button>
-              <button id="btnSearchNavClose" class="tool-btn" type="button" title="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+              <button id="btnSearchNavPrev" class="btn-search-nav" type="button" title="Ver referencia anterior">◀ Anterior</button>
+              <button id="btnSearchNavNext" class="btn-search-nav" type="button" title="Ver siguiente referencia">Siguiente ▶</button>
+              <button id="btnSearchNavReturn" class="btn-search-nav btn-search-nav-primary" type="button" title="Volver a ver todas las referencias de esta búsqueda">
+                📋 Ver todas las referencias (<span id="searchNavTotalCount">0</span>)
+              </button>
+              <button id="btnSearchNavClose" class="btn-search-nav-close" type="button" title="Cerrar barra de búsqueda">✕</button>
             </div>
           </div>
 
-          <div id="paperSheetContainer" class="paper-notebook-sheet">
-            <div class="doc-inner">
-              <div class="paper-header-strip">
-                <span id="activeDayHeaderBanner" class="day-stamp-text"></span>
+          <!-- Contenedor Visual de Hoja de Papel (Paper Notebook Design) -->
+          <div id="paperSheetContainer" class="paper-notebook-sheet paper-warm-parchment">
+            <!-- Sello de Encabezado del Día (Marca claramente que es una nueva entrada diaria) -->
+            <div class="paper-header-strip">
+              <div class="day-stamp-badge">
+                <span class="day-stamp-icon">📅</span>
+                <span id="activeDayHeaderBanner" class="day-stamp-text">DÍA 17 • Jueves, 17 de Septiembre de 2026</span>
+              </div>
+              <div class="paper-binder-rings">
+                <span class="binder-hole"></span>
+                <span class="binder-hole"></span>
+                <span class="binder-hole"></span>
+              </div>
+            </div>
+
+            <!-- Cabecera interactiva con Icono, Título y Prompts de Metadatos -->
+            <div class="note-header-interactive">
+              <div class="note-icon-row">
+                <button id="noteIconBtn" class="note-icon-picker-btn" title="Haz clic para cambiar el emoticono de este día">
+                  🌅
+                </button>
+                <div class="note-title-prompt-container">
+                  <input 
+                    type="text" 
+                    id="noteTitleInput" 
+                    class="note-title-input handwriting-title" 
+                    placeholder="Escribe el título de este día aquí... (ej: 'El valor incalculable de la fe')"
+                  >
+                </div>
               </div>
 
-              <div class="note-header-interactive">
-                <div class="note-icon-row">
-                  <button id="noteIconBtn" class="note-icon-picker-btn" type="button" title="Cambiar icono">🌅</button>
-                  <input type="text" id="noteTitleInput" class="note-title-input" placeholder="Sin título" aria-label="Título">
+              <!-- Fila de Prompts: Fecha exacta, Categoría, Subcategoría/Año/Mes y Etiquetas -->
+              <div class="note-metadata-prompts paper-meta-row">
+                <div class="prompt-field">
+                  <label class="prompt-label">📅 Fecha de Entrada:</label>
+                  <input type="date" id="noteDateInput" class="prompt-input">
                 </div>
 
-                <div class="note-properties">
-                  <div class="prop">
-                    <label class="prop-label" for="noteDateInput"><svg class="i"><use href="#i-calendar"/></svg>Fecha</label>
-                    <input type="date" id="noteDateInput" class="prop-input">
+                <div class="prompt-field">
+                  <label class="prompt-label">🏷️ Categoría:</label>
+                  <select id="noteCategorySelect" class="prompt-select">
+                    <option value="daily_text">🌅 Daily Text Comments</option>
+                    <option value="events">🏛️ Events</option>
+                    <option value="spiritual_notes">💡 Spiritual Notes</option>
+                  </select>
+                </div>
+
+                <div id="subCategoryWrapper" class="prompt-field" style="display: none;">
+                  <label class="prompt-label">🏛️ Evento:</label>
+                  <select id="noteSubCategorySelect" class="prompt-select">
+                    <option value="bethel_talks">🎤 Bethel Talks</option>
+                    <option value="annual_meeting">🌐 Annual Meeting</option>
+                    <option value="gilead_meeting">🎓 Gilead Meeting</option>
+                    <option value="others">📂 Others</option>
+                  </select>
+                </div>
+
+                <div id="monthWrapper" class="prompt-field" style="display: inline-flex; gap: 8px;">
+                  <div>
+                    <label class="prompt-label">Año:</label>
+                    <input type="number" id="noteYearInput" class="prompt-input" value="2026" style="width: 75px;">
                   </div>
-                  <div class="prop">
-                    <label class="prop-label" for="noteCategorySelect"><svg class="i"><use href="#i-folder"/></svg>Carpeta</label>
-                    <select id="noteCategorySelect" class="prop-input">
-                      <option value="daily_text">🌅 Daily Text Comments</option>
-                      <option value="events">🏛️ Events</option>
-                      <option value="spiritual_notes">💡 Spiritual Notes</option>
+                  <div>
+                    <label class="prompt-label">Mes:</label>
+                    <select id="noteMonthSelect" class="prompt-select">
+                      <option value="Enero">Enero</option>
+                      <option value="Febrero">Febrero</option>
+                      <option value="Marzo">Marzo</option>
+                      <option value="Abril">Abril</option>
+                      <option value="Mayo">Mayo</option>
+                      <option value="Junio">Junio</option>
+                      <option value="Julio">Julio</option>
+                      <option value="Agosto">Agosto</option>
+                      <option value="Septiembre" selected>Septiembre</option>
+                      <option value="Octubre">Octubre</option>
+                      <option value="Noviembre">Noviembre</option>
+                      <option value="Diciembre">Diciembre</option>
                     </select>
                   </div>
-                  <div id="subCategoryWrapper" class="prop" style="display: none;">
-                    <label class="prop-label" for="noteSubCategorySelect"><svg class="i"><use href="#i-folder"/></svg>Evento</label>
-                    <select id="noteSubCategorySelect" class="prop-input">
-                      <option value="bethel_talks">🎤 Bethel Talks</option>
-                      <option value="annual_meeting">🌐 Annual Meeting</option>
-                      <option value="gilead_meeting">🎓 Gilead Meeting</option>
-                      <option value="others">📂 Others</option>
-                    </select>
-                  </div>
-                  <div id="monthWrapper" class="prop prop-pair">
-                    <label class="prop-label" for="noteMonthSelect"><svg class="i"><use href="#i-calendar"/></svg>Mes</label>
-                    <div class="prop-pair-inputs">
-                      <select id="noteMonthSelect" class="prop-input">
-                        <option value="Enero">Enero</option><option value="Febrero">Febrero</option><option value="Marzo">Marzo</option>
-                        <option value="Abril">Abril</option><option value="Mayo">Mayo</option><option value="Junio">Junio</option>
-                        <option value="Julio">Julio</option><option value="Agosto">Agosto</option><option value="Septiembre" selected>Septiembre</option>
-                        <option value="Octubre">Octubre</option><option value="Noviembre">Noviembre</option><option value="Diciembre">Diciembre</option>
-                      </select>
-                      <input type="number" id="noteYearInput" class="prop-input prop-year" value="2026" aria-label="Año">
-                    </div>
-                  </div>
-                  <div class="prop prop-wide">
-                    <label class="prop-label" for="noteTagsInput"><svg class="i"><use href="#i-tag"/></svg>Etiquetas</label>
-                    <input type="text" id="noteTagsInput" class="prop-input" placeholder="fe, paciencia, ministerio…">
-                  </div>
+                </div>
+
+                <div class="prompt-field" style="flex: 1; min-width: 140px;">
+                  <label class="prompt-label">🔖 Etiquetas:</label>
+                  <input type="text" id="noteTagsInput" class="prompt-input" placeholder="fe, paciencia, ministerio...">
                 </div>
               </div>
             </div>
 
-            <!-- Barra de formato (fija al desplazarse) -->
-            <div id="paperToolbar" class="paper-toolbar">
-              <div class="toolbar-scroll">
-                <div class="toolbar-group">
-                  <button type="button" class="toolbar-btn" data-format="bold" title="Negrita"><svg class="i"><use href="#i-bold"/></svg></button>
-                  <button type="button" class="toolbar-btn" data-format="italic" title="Cursiva"><svg class="i"><use href="#i-italic"/></svg></button>
-                  <button type="button" class="toolbar-btn toolbar-text" data-format="h1" title="Título">H1</button>
-                  <button type="button" class="toolbar-btn toolbar-text" data-format="h2" title="Subtítulo">H2</button>
-                  <button type="button" class="toolbar-btn" data-format="normal" title="Texto normal (quitar formato)"><svg class="i"><use href="#i-pilcrow"/></svg></button>
-                </div>
-                <div class="toolbar-group">
-                  <button type="button" class="toolbar-btn" data-format="bullet" title="Lista"><svg class="i"><use href="#i-list"/></svg></button>
-                  <button type="button" class="toolbar-btn" data-format="quote" title="Cita"><svg class="i"><use href="#i-quote"/></svg></button>
-                  <button type="button" class="toolbar-btn" data-format="callout" title="Punto clave destacado"><svg class="i"><use href="#i-bulb"/></svg></button>
-                  <button type="button" class="toolbar-btn toolbar-btn-label" data-format="scripture" title="Insertar texto bíblico (TNM)"><svg class="i"><use href="#i-bible"/></svg><span>Versículo</span></button>
-                </div>
-                <div class="toolbar-group toolbar-collapsible">
-                  <select id="fontFamilySelector" class="toolbar-select" title="Tipo de letra">
-                    <option value="kalam" selected>Manuscrita</option>
-                    <option value="patrick">Cuaderno</option>
-                    <option value="caveat">Caligrafía</option>
-                    <option value="serif">Serif</option>
-                    <option value="system">Sans</option>
+            <!-- Barra de Herramientas de Estudio (Caligrafía + Formato + Versículo + Gemini) -->
+            <div id="paperToolbar" class="notion-toolbar paper-toolbar">
+              <!-- Botón Minimizar / Ampliar Barra de Herramientas -->
+              <button type="button" id="btnToggleToolbarCollapse" class="toolbar-toggle-btn" title="Minimizar barra de herramientas">
+                <span class="toggle-icon">▲</span>
+                <span class="toggle-text">Minimizar</span>
+              </button>
+
+              <!-- Selector de Fuente y Estilo de Papel -->
+              <div class="toolbar-format-group">
+                <div class="toolbar-custom-control">
+                  <span class="control-icon">✍️</span>
+                  <select id="fontFamilySelector" class="toolbar-select" title="Cambiar tipo de letra manuscrita">
+                    <option value="kalam" selected>✍️ Kalam (Caligrafía Natural)</option>
+                    <option value="patrick">📝 Patrick Hand (Caligrafía Cuaderno)</option>
+                    <option value="caveat">🖋️ Caveat (Manuscrita Fluida)</option>
+                    <option value="system">💻 Tipografía Impresa</option>
                   </select>
-                  <select id="paperStyleSelector" class="toolbar-select" title="Estilo de hoja">
-                    <option value="paper-grid" selected>Cuadrícula</option>
-                    <option value="paper-ruled">Rayada</option>
-                    <option value="paper-warm-parchment">Crema</option>
-                    <option value="paper-clean">Hoja lisa</option>
+                </div>
+
+                <div class="toolbar-custom-control">
+                  <span class="control-icon">📜</span>
+                  <select id="paperStyleSelector" class="toolbar-select" title="Estilo del papel de notas">
+                    <option value="paper-warm-parchment" selected>📜 Papel Crema Suave</option>
+                    <option value="paper-ruled">📝 Papel Rayado de Cuaderno</option>
+                    <option value="paper-clean-ivory">📄 Papel Marfil Puro</option>
+                    <option value="paper-grid">📐 Papel Cuadriculado</option>
+                    <option value="paper-dark">🌙 Modo Noche</option>
                   </select>
-                  <button type="button" id="btnFontDec" class="toolbar-btn toolbar-text" title="Letra más pequeña">A−</button>
-                  <button type="button" id="btnFontInc" class="toolbar-btn toolbar-text" title="Letra más grande">A+</button>
                 </div>
+
+                <button type="button" id="btnFontDec" class="toolbar-btn" title="Disminuir tamaño de letra">A-</button>
+                <button type="button" id="btnFontInc" class="toolbar-btn" title="Aumentar tamaño de letra">A+</button>
+
+                <button type="button" id="btnToolbarAddEntry" class="toolbar-btn" title="Insertar una nueva entrada con fecha y título en este documento" style="background: rgba(212, 175, 55, 0.18); color: var(--gold-primary); font-weight: 700; border: 1px solid rgba(212, 175, 55, 0.5); padding: 4px 10px; border-radius: 6px; margin-left: 4px;">
+                  ➕ Añadir Entrada
+                </button>
+
+                <div class="toolbar-sep">|</div>
+
+                <button type="button" class="toolbar-btn" data-format="bold" title="Negrita (**texto**)">
+                  <strong>B</strong>
+                </button>
+                <button type="button" class="toolbar-btn" data-format="italic" title="Cursiva (*texto*)">
+                  <em>I</em>
+                </button>
+                <button type="button" class="toolbar-btn" data-format="normal" title="Texto normal (Quitar encabezado, cita, viñeta o estilo aplicado)">Normal</button>
+                <button type="button" class="toolbar-btn" data-format="h1" title="Encabezado (#)">H1</button>
+                <button type="button" class="toolbar-btn" data-format="h2" title="Subtítulo (##)">H2</button>
+                <button type="button" class="toolbar-btn" data-format="bullet" title="Viñeta (•)">• Viñeta</button>
+                <button type="button" class="toolbar-btn" data-format="quote" title="Cita en bloque (>)">❝ Cita</button>
+                <button type="button" class="toolbar-btn" data-format="callout" title="Punto clave destacado (💡)">💡 Destacado</button>
+                <button type="button" class="toolbar-btn" data-format="scripture" title="Cita bíblica formateada (📖)">📖 Versículo</button>
               </div>
-              <div class="toolbar-end">
-                <button type="button" id="btnToolbarAddEntry" class="toolbar-btn toolbar-btn-label" title="Añadir una entrada con fecha a este documento">
-                  <svg class="i"><use href="#i-plus"/></svg><span>Entrada</span>
-                </button>
-                <button type="button" id="btnRunAiAssist" class="btn-ai-single" title="Revisar ortografía y redacción con Gemini">
-                  <svg class="i"><use href="#i-sparkles"/></svg><span>Revisar con IA</span>
-                </button>
-                <button type="button" id="btnToggleToolbarCollapse" class="toolbar-btn toolbar-toggle-btn" title="Mostrar u ocultar opciones de letra">
-                  <span class="toggle-icon">▲</span><span class="toggle-text sr-only">Minimizar</span>
+
+              <!-- Herramienta IA Única: Corregir y Mejorar con Track Changes -->
+              <div class="toolbar-ai-group">
+                <button type="button" id="btnRunAiAssist" class="btn-ai-single" title="Revisar ortografía, tildes y pulir redacción con Gemini en 1 solo clic y ver control de cambios">
+                  ✨ Corregir y Mejorar con Gemini
                 </button>
               </div>
             </div>
 
-            <!-- Control de cambios de la IA -->
-            <div class="doc-inner">
-              <div id="aiDiffPanel" class="ai-track-changes-panel" style="display: none;">
-                <div class="ai-track-header">
-                  <div class="ai-track-title-box">
-                    <span class="ai-track-badge"><svg class="i"><use href="#i-sparkles"/></svg>Sugerencias de la IA</span>
-                    <span id="aiChangesCount" class="ai-changes-badge">0 cambios</span>
-                    <span id="aiEngineBadge" class="ai-engine-badge">Gemini</span>
-                  </div>
-                  <div class="ai-track-actions">
-                    <button id="btnApplyAiChanges" class="btn-primary btn-sm" type="button"><svg class="i"><use href="#i-check"/></svg>Aceptar</button>
-                    <button id="btnDiscardAiChanges" class="btn-secondary btn-sm" type="button">Descartar</button>
-                  </div>
+            <!-- Panel de Control de Cambios (Track Changes) -->
+            <div id="aiDiffPanel" class="ai-track-changes-panel" style="display: none;">
+              <div class="ai-track-header">
+                <div class="ai-track-title-box">
+                  <span class="ai-track-badge">✨ Control de Cambios con Gemini</span>
+                  <span id="aiChangesCount" class="ai-changes-badge">0 cambios</span>
+                  <span id="aiEngineBadge" class="ai-engine-badge">Gemini Flash</span>
                 </div>
-                <div class="ai-track-legend">
-                  <span class="legend-item"><del class="track-del">eliminado</del></span>
-                  <span class="legend-item"><ins class="track-ins">añadido</ins></span>
+                <div class="ai-track-actions">
+                  <button id="btnApplyAiChanges" class="btn-primary btn-track-accept" title="Aceptar todas las correcciones con 1 solo clic">
+                    ✓ Aceptar Cambios
+                  </button>
+                  <button id="btnDiscardAiChanges" class="btn-secondary btn-track-reject" title="Rechazar los cambios con 1 solo clic">
+                    ✕ Rechazar
+                  </button>
                 </div>
-                <div id="aiDiffContent" class="ai-track-body"></div>
               </div>
-
-              <div class="editor-textarea-wrapper">
-                <div id="noteRichEditor" class="notion-rich-editor font-kalam" contenteditable="true" spellcheck="true"
-                  role="textbox" aria-multiline="true" aria-label="Contenido del apunte"
-                  data-placeholder="Empieza a escribir…"></div>
-                <textarea id="noteTextarea" style="display: none;"></textarea>
+              <div class="ai-track-legend">
+                <span class="legend-item"><del class="track-del">Texto eliminado / corregido</del></span>
+                <span class="legend-item"><ins class="track-ins">Texto nuevo / corregido</ins></span>
+              </div>
+              <div id="aiDiffContent" class="ai-track-body">
+                <!-- Texto con marcas de control de cambios renderizado aquí -->
               </div>
             </div>
+
+            <!-- Área de Escritura Amplia con Letra Manuscrita y Fondo de Papel -->
+            <div class="editor-textarea-wrapper">
+              <div class="notebook-left-margin-line"></div>
+              <div 
+                id="noteRichEditor" 
+                class="notion-rich-editor handwriting-paper font-kalam" 
+                contenteditable="true" 
+                spellcheck="false"
+                role="textbox"
+                aria-multiline="true"
+                data-placeholder="Escribe aquí tus apuntes matutinos, comentarios del texto diario o perlas de la reunión...&#10;&#10;¡Usa los botones de H1, H2, Versículo 📖 o Viñeta para organizar visualmente tus notas!"
+              ></div>
+              <textarea id="noteTextarea" style="display: none;"></textarea>
+            </div>
+
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ======================== SECCIÓN: REPASO ========================= -->
+    <!-- ================================================================ -->
+    <!-- SECCIÓN 2: PLATÓ DE JUEGOS (SABER Y GANAR & EL ROSCO A-Z)        -->
+    <!-- ================================================================ -->
     <section id="gameSection" style="display: none;">
+      <!-- BARRA DE MODOS: CONCURSO APUNTES vs MEMORIZADOR REYES Y PROFETAS -->
       <div class="game-subnav-bar">
         <button id="btnSubTabQuiz" class="game-subnav-btn active" type="button">
-          <svg class="i"><use href="#i-target"/></svg><span>Concurso y Rosco</span>
+          🏆 Concurso Saber y Ganar & El Rosco
         </button>
         <button id="btnSubTabReyes" class="game-subnav-btn" type="button">
-          <svg class="i"><use href="#i-crown"/></svg><span>Reyes y Profetas</span>
+          👑 Memorizador de Reyes y Profetas (Gráficos A6-A y A6-B)
         </button>
       </div>
 
-      <!-- Vista 1: selección de temas -->
-      <section id="lobbyView" class="game-page">
+      <!-- VISTA 1: LOBBY / SELECCIÓN DE TEMAS -->
+      <section id="lobbyView">
         <div class="hero-banner">
-          <div class="hero-badge">Repaso interactivo</div>
-          <h1>Repasa tus apuntes jugando</h1>
-          <p>Elige de 1 a 5 temas, responde preguntas de 4 opciones (5 puntos por acierto) y llega a la meta para desbloquear el Rosco de la A a la Z.</p>
+          <div class="hero-badge">Estudio Interactivo con IA</div>
+          <h1>El Gran Concurso de tu Estudio</h1>
+          <p>Elige de 1 a 5 temas de tus apuntes diarios o documentos, responde preguntas con 4 opciones (5 puntos cada acierto) y alcanza los 100 puntos (20 preguntas) para desbloquear la Ruleta de la A a la Z.</p>
         </div>
 
+        <!-- TARJETA DESTACADA: MEMORIZADOR Y APUNTES DE REYES Y PROFETAS -->
         <div class="reyes-featured-card">
           <div class="reyes-featured-left">
-            <div class="reyes-featured-badge"><svg class="i"><use href="#i-crown"/></svg>Referencia histórica</div>
-            <h3>Reyes y profetas de Judá e Israel</h3>
-            <p>Cronología visual con 58 fichas interactivas y tablas de referencia (gráficos A6‑A y A6‑B).</p>
+            <div class="reyes-featured-badge">👑 APUNTES Y REFERENCIA HISTÓRICA</div>
+            <h3>Memorizador y Cronología de Reyes y Profetas</h3>
+            <p>Accede a la cronología visual completa de los reyes de Judá e Israel y sus profetas contemporáneos (Gráficos jw.org A6-A y A6-B). 58 fichas interactivas, tablas cronológicas y notas de referencia para estudiar y memorizar.</p>
           </div>
           <div class="reyes-featured-right">
-            <button id="btnOpenReyesFeatured" class="btn-secondary" type="button">Abrir memorizador <svg class="i"><use href="#i-chevron-right"/></svg></button>
+            <button id="btnOpenReyesFeatured" class="btn-primary" type="button" style="white-space: nowrap; padding: 12px 22px; font-size: 0.95rem;">
+              👑 Abrir Memorizador y Apuntes ➔
+            </button>
           </div>
         </div>
 
         <div class="selection-bar">
           <div class="selection-info">
-            <span class="selection-label">Temas seleccionados</span>
-            <span id="selectedCountBadge" class="selection-count-badge">0 / 5</span>
+            <span style="font-weight: 600; color: #fff;">Temas seleccionados:</span>
+            <span id="selectedCountBadge" class="selection-count-badge">0 / 5 seleccionados</span>
           </div>
-          <div class="selection-actions">
-            <button id="btnSyncApuntes" class="btn-secondary" type="button" title="Actualizar la lista de temas">
-              <svg class="i"><use href="#i-refresh"/></svg><span>Actualizar</span>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button id="btnSyncApuntes" class="btn-secondary" title="Comprueba la carpeta de apuntes y genera preguntas si hay archivos nuevos" style="font-size: 0.9rem; padding: 10px 18px;">
+              🔄 Sincronizar Apuntes
             </button>
-            <button id="btnStartGame" class="btn-primary" type="button" disabled>
-              <svg class="i"><use href="#i-play"/></svg><span>Empezar</span>
+            <button id="btnStartGame" class="btn-primary" disabled>
+              ▶ ¡EMPEZAR EL JUEGO!
             </button>
           </div>
         </div>
 
         <div id="topicsGrid" class="topics-grid"></div>
 
-        <div class="panel upload-panel">
-          <h3>Importar documentos</h3>
-          <p>Arrastra archivos .txt, .md, .docx o .pdf para extraer su contenido y crear preguntas automáticamente.</p>
-          <div id="uploadArea" class="upload-box" role="button" tabindex="0">
-            <svg class="i upload-icon"><use href="#i-upload"/></svg>
-            <div class="upload-title">Arrastra un archivo o haz clic para elegirlo</div>
-            <div class="upload-desc">Word (.docx), PDF (.pdf) y texto (.txt, .md)</div>
+        <div class="glass-panel" style="margin-top: 1.5rem;">
+          <h3 style="margin-bottom: 0.5rem; font-size: 1.2rem; color: var(--gold-primary);">
+            📥 Añadir Nuevos Documentos Externos
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+            Arrastra aquí archivos existentes (.txt, .md, .docx, .pdf) para extraer automáticamente su contenido y añadir preguntas a tu base de datos.
+          </p>
+          <div id="uploadArea" class="upload-box">
+            <div class="upload-icon">📄</div>
+            <div class="upload-title">Arrastra tu archivo aquí o haz clic para examinar</div>
+            <div class="upload-desc">Soporta documentos de Word (.docx), PDF (.pdf) y texto (.txt, .md)</div>
             <input type="file" id="fileInput" accept=".txt,.md,.docx,.pdf" style="display: none;">
           </div>
           <div id="uploadStatus" style="display: none;"></div>
         </div>
       </section>
 
-      <!-- Vista 2: partida -->
-      <section id="gameView" class="game-view game-page" style="display: none;">
+      <!-- VISTA 2: PLATÓ DE JUEGO ("EN DIRECTO") -->
+      <section id="gameView" class="game-view" style="display: none;">
         <div class="scoreboard">
           <div class="score-panel">
-            <div class="score-panel-label">Puntos</div>
+            <div class="score-panel-label">PUNTOS</div>
             <div id="currentScoreVal" class="score-panel-value">0</div>
           </div>
+
           <div class="progress-center">
-            <div class="progress-bar-outer"><div id="progressBarInner" class="progress-bar-inner"></div></div>
-            <div class="progress-label">Meta: <strong id="targetScoreVal">100</strong> puntos · <span id="progressText">0% hacia la meta</span></div>
+            <div class="progress-bar-outer">
+              <div id="progressBarInner" class="progress-bar-inner"></div>
+            </div>
+            <div class="progress-label">
+              Meta: <strong id="targetScoreVal" style="color: var(--gold-primary);">100</strong> puntos | <span id="progressText">0% hacia la meta</span>
+            </div>
           </div>
+
           <div class="streak-panel">
-            <div class="score-panel-label">Racha</div>
-            <div class="streak-badge"><span id="streakVal">0</span> seguidas</div>
+            <div class="score-panel-label" style="margin-bottom: 4px;">RACHA</div>
+            <div class="streak-badge">
+              🔥 <span id="streakVal">0</span> seguidas
+            </div>
           </div>
         </div>
 
         <div class="question-tv-screen">
-          <div id="questionTopicTag" class="question-topic-tag">Tema</div>
-          <div id="questionText" class="question-text">Cargando pregunta…</div>
+          <div id="questionTopicTag" class="question-topic-tag">
+            📚 Tema: Cargando...
+          </div>
+          <div id="questionText" class="question-text">
+            Cargando pregunta...
+          </div>
         </div>
 
         <div id="optionsGrid" class="options-grid"></div>
 
         <div id="explanationPanel" class="explanation-panel">
-          <div class="explanation-title"><svg class="i"><use href="#i-bulb"/></svg>Explicación</div>
-          <div id="explanationText" class="explanation-body">…</div>
+          <div class="explanation-title">
+            <span>💡 Explicación del Apunte:</span>
+          </div>
+          <div id="explanationText" class="explanation-body">...</div>
         </div>
 
         <div class="game-controls">
-          <button id="btnExitGame" class="btn-secondary" type="button"><svg class="i"><use href="#i-arrow-left"/></svg>Salir</button>
-          <button id="btnNextQuestion" class="btn-primary" type="button" style="display: none;">Siguiente <svg class="i"><use href="#i-chevron-right"/></svg></button>
+          <button id="btnExitGame" class="btn-secondary">⏹ Salir al Menú</button>
+          <button id="btnNextQuestion" class="btn-primary" style="display: none; padding: 10px 24px; font-size: 1rem;">
+            Siguiente Pregunta ➔
+          </button>
         </div>
       </section>
 
-      <!-- Vista 3: meta alcanzada -->
-      <section id="victoryView" class="victory-view panel game-page" style="display: none;">
-        <div class="trophy-container"><svg class="i"><use href="#i-trophy"/></svg></div>
-        <h2 class="victory-title">¡Meta alcanzada!</h2>
-        <p class="victory-subtitle">Has superado la primera fase. Ya puedes jugar el reto final: el Rosco de la A a la Z.</p>
+      <!-- VISTA 3: PANTALLA DE META ALCANZADA (100 PUNTOS) -->
+      <section id="victoryView" class="victory-view glass-panel" style="display: none;">
+        <div class="trophy-container">🏆</div>
+        <h2 class="victory-title">¡META ALCANZADA: 100 PUNTOS!</h2>
+        <p class="victory-subtitle">¡Has superado la primera fase del concurso! Ahora tienes acceso al gran reto final televisivo.</p>
+
         <div class="stats-grid">
-          <div class="stat-card"><div id="finalScoreVal" class="stat-value">100</div><div class="stat-label">Puntos</div></div>
-          <div class="stat-card"><div id="finalAccuracyVal" class="stat-value">100%</div><div class="stat-label">Precisión</div></div>
-          <div class="stat-card"><div id="finalTopicsVal" class="stat-value">3</div><div class="stat-label">Temas</div></div>
+          <div class="stat-card">
+            <div id="finalScoreVal" class="stat-value">100</div>
+            <div class="stat-label">Puntos Logrados</div>
+          </div>
+          <div class="stat-card">
+            <div id="finalAccuracyVal" class="stat-value">100%</div>
+            <div class="stat-label">Precisión</div>
+          </div>
+          <div class="stat-card">
+            <div id="finalTopicsVal" class="stat-value">3</div>
+            <div class="stat-label">Temas Repasados</div>
+          </div>
         </div>
-        <div class="victory-actions">
-          <button id="btnStartRosco" class="btn-primary btn-lg" type="button">Entrar al Rosco A‑Z</button>
-          <div class="victory-secondary">
-            <button id="btnPlayAgain" class="btn-secondary" type="button">Jugar otra vez</button>
-            <button id="btnBackToLobby" class="btn-secondary" type="button">Volver a temas</button>
-            <button id="btnVictoryToReyes" class="btn-secondary" type="button">Reyes y profetas</button>
+
+        <div class="victory-actions" style="flex-direction: column; align-items: center; gap: 15px;">
+          <button id="btnStartRosco" class="btn-primary" style="font-size: 1.25rem; padding: 15px 35px; box-shadow: 0 0 30px var(--gold-glow); animation: pulse-correct 1.5s infinite;">
+            🎡 ¡ENTRAR A LA RULETA FINAL (A a la Z)!
+          </button>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+            <button id="btnPlayAgain" class="btn-secondary">🔄 Jugar Otra Partida Normal</button>
+            <button id="btnBackToLobby" class="btn-secondary">🏠 Volver al Menú</button>
+            <button id="btnVictoryToReyes" class="btn-secondary" style="border-color: rgba(201, 154, 78, 0.4); color: var(--gold-primary);">👑 Estudiar Reyes y Profetas</button>
           </div>
         </div>
       </section>
 
-      <!-- Vista 4: Rosco -->
-      <section id="roscoView" class="rosco-view panel game-page" style="display: none;">
+      <!-- VISTA 4: LA RULETA DE LA A A LA Z (EL ROSCO) -->
+      <section id="roscoView" class="rosco-view glass-panel" style="display: none;">
         <div class="rosco-header">
-          <div class="rosco-timer-box"><span id="roscoTimer" class="rosco-timer-digits">05:00</span></div>
-          <div class="rosco-score-counters">
-            <span class="badge-acierto">Aciertos <strong id="roscoCorrectCount">0</strong></span>
-            <span class="badge-fallo">Fallos <strong id="roscoWrongCount">0</strong></span>
-            <span class="badge-pendiente">Pendientes <strong id="roscoPendingCount">22</strong></span>
+          <div class="rosco-timer-box">
+            <span class="timer-icon">⏱️</span>
+            <span id="roscoTimer" class="rosco-timer-digits">05:00</span>
           </div>
-          <label class="rosco-time-adjust">
-            <span>Tiempo</span>
-            <select id="roscoTimeSelect" class="form-input form-input-sm">
+          <div class="rosco-score-counters">
+            <span class="badge-acierto">✓ <strong id="roscoCorrectCount">0</strong></span>
+            <span class="badge-fallo">✗ <strong id="roscoWrongCount">0</strong></span>
+            <span class="badge-pendiente">⏳ <strong id="roscoPendingCount">22</strong></span>
+          </div>
+          <div class="rosco-time-adjust">
+            <label style="font-size: 0.8rem; color: var(--text-muted);">Tiempo:</label>
+            <select id="roscoTimeSelect" class="form-input" style="width: auto; padding: 4px 8px; font-size: 0.85rem;">
               <option value="180">3 min</option>
               <option value="300" selected>5 min</option>
               <option value="420">7 min</option>
               <option value="600">10 min</option>
             </select>
-          </label>
+          </div>
         </div>
+
         <div class="rosco-stage">
           <div id="roscoWheel" class="rosco-wheel"></div>
           <div class="rosco-center-screen">
             <div id="roscoActiveLetterBadge" class="active-letter-badge">A</div>
             <div id="roscoPrefix" class="active-prefix">Empieza por A</div>
-            <div id="roscoQuestionText" class="rosco-question-prompt">Cargando definición…</div>
+            <div id="roscoQuestionText" class="rosco-question-prompt">
+              Cargando definición de los apuntes...
+            </div>
           </div>
         </div>
+
         <div class="rosco-input-area">
           <form id="roscoForm" onsubmit="return false;">
-            <input type="text" id="roscoInput" class="rosco-text-input" placeholder="Escribe tu respuesta…" autocomplete="off">
+            <input 
+              type="text" 
+              id="roscoInput" 
+              class="rosco-text-input" 
+              placeholder="Escribe aquí tu respuesta..." 
+              autocomplete="off" 
+              autofocus
+            >
             <div class="rosco-buttons-row">
-              <button type="submit" id="btnRoscoSubmit" class="btn-primary">Responder <kbd>Enter</kbd></button>
-              <button type="button" id="btnRoscoPass" class="btn-pasapalabra">Pasapalabra <kbd>Espacio</kbd></button>
+              <button type="submit" id="btnRoscoSubmit" class="btn-primary" style="flex: 1;">
+                Enviar Respuesta (Enter)
+              </button>
+              <button type="button" id="btnRoscoPass" class="btn-pasapalabra" style="flex: 1;">
+                🔁 Pasapalabra (Espacio)
+              </button>
             </div>
           </form>
+          <div class="rosco-hint-keys">
+            💡 Puedes pulsar <strong>ENTER</strong> para responder o la <strong>BARRA ESPACIADORA</strong> para pasar palabra.
+          </div>
         </div>
       </section>
 
-      <!-- Vista 5: resultados del Rosco -->
-      <section id="roscoResultView" class="panel game-page rosco-result" style="display: none;">
-        <div id="roscoResultEmoji" class="rosco-result-emoji">🎉</div>
-        <h2 id="roscoResultTitle">Fin del Rosco</h2>
-        <p id="roscoResultSubtitle">Este es el resumen de tu partida:</p>
-        <div class="stats-grid">
-          <div class="stat-card stat-good"><div id="roscoFinalCorrect" class="stat-value">0</div><div class="stat-label">Acertadas</div></div>
-          <div class="stat-card stat-bad"><div id="roscoFinalWrong" class="stat-value">0</div><div class="stat-label">Falladas</div></div>
-          <div class="stat-card stat-warn"><div id="roscoFinalPassed" class="stat-value">0</div><div class="stat-label">Pasadas</div></div>
+      <!-- VISTA 5: RESULTADOS FINALES DEL ROSCO -->
+      <section id="roscoResultView" class="glass-panel" style="display: none; text-align: center; padding: 2.5rem 1.5rem;">
+        <div style="font-size: 4rem; margin-bottom: 0.5rem;" id="roscoResultEmoji">🎉</div>
+        <h2 id="roscoResultTitle" style="font-size: 2.2rem; color: var(--gold-primary); margin-bottom: 0.5rem;">
+          ¡FIN DEL ROSCO DE LA A A LA Z!
+        </h2>
+        <p id="roscoResultSubtitle" style="color: var(--text-muted); margin-bottom: 2rem;">
+          Aquí tienes el desglose detallado de tu estudio en la ruleta de la fortuna:
+        </p>
+
+        <div class="stats-grid" style="max-width: 700px; margin: 0 auto 2rem;">
+          <div class="stat-card" style="border-color: var(--green-correct);">
+            <div id="roscoFinalCorrect" class="stat-value" style="color: var(--green-correct);">0</div>
+            <div class="stat-label">Preguntas Acertadas</div>
+          </div>
+          <div class="stat-card" style="border-color: var(--red-wrong);">
+            <div id="roscoFinalWrong" class="stat-value" style="color: var(--red-wrong);">0</div>
+            <div class="stat-label">Preguntas Falladas</div>
+          </div>
+          <div class="stat-card" style="border-color: var(--gold-primary);">
+            <div id="roscoFinalPassed" class="stat-value" style="color: var(--gold-primary);">0</div>
+            <div class="stat-label">Preguntas Pasadas</div>
+          </div>
         </div>
-        <div class="rosco-review">
-          <h4>Soluciones</h4>
-          <div id="roscoAnswersReview" class="rosco-answers-review"></div>
+
+        <div style="text-align: left; max-width: 800px; margin: 0 auto 2rem;">
+          <h4 style="color: #fff; margin-bottom: 1rem;">📋 Soluciones y Repaso de Apuntes:</h4>
+          <div id="roscoAnswersReview" style="max-height: 320px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem;"></div>
         </div>
-        <div class="victory-secondary">
-          <button id="btnRoscoRetry" class="btn-primary" type="button">Repetir el Rosco</button>
-          <button id="btnRoscoToMenu" class="btn-secondary" type="button">Volver a temas</button>
-          <button id="btnRoscoToReyes" class="btn-secondary" type="button">Reyes y profetas</button>
+
+        <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+          <button id="btnRoscoRetry" class="btn-primary">🔄 Repetir el Rosco</button>
+          <button id="btnRoscoToMenu" class="btn-secondary">🏠 Volver a Selección de Temas</button>
+          <button id="btnRoscoToReyes" class="btn-secondary" style="border-color: rgba(201, 154, 78, 0.4); color: var(--gold-primary);">👑 Estudiar Reyes y Profetas</button>
         </div>
       </section>
 
-      <!-- Vista 6: Reyes y profetas -->
+      <!-- VISTA 6: MEMORIZADOR Y APUNTES DE REYES Y PROFETAS -->
       <section id="reyesView" class="reyes-view-container" style="display: none;">
         <div class="reyes-view-header">
-          <div class="reyes-view-title">
-            <button id="btnBackFromReyes" class="btn-secondary btn-sm" type="button"><svg class="i"><use href="#i-arrow-left"/></svg>Concurso</button>
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <button id="btnBackFromReyes" class="btn-secondary" type="button" style="font-size: 0.88rem; padding: 7px 14px;">
+              ◀ Volver a Concurso
+            </button>
             <div>
-              <div class="reyes-title">Reyes y profetas de Judá e Israel</div>
-              <div class="reyes-subtitle">Gráficos A6‑A / A6‑B · 58 fichas · tablas cronológicas</div>
+              <div style="font-weight: 700; color: var(--gold-primary); font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                👑 Memorizador de Reyes y Profetas de Judá e Israel
+              </div>
+              <div style="color: var(--text-muted); font-size: 0.8rem;">
+                Gráficos jw.org A6-A / A6-B • 58 fichas visuales interactivas • Tablas cronológicas y apuntes de referencia
+              </div>
             </div>
           </div>
-          <div class="reyes-view-actions">
-            <button id="btnReloadReyes" class="btn-secondary btn-sm" type="button" title="Recargar"><svg class="i"><use href="#i-refresh"/></svg><span class="hide-narrow">Recargar</span></button>
-            <button id="btnOpenReyesNewTab" class="btn-secondary btn-sm" type="button" title="Abrir en otra pestaña"><svg class="i"><use href="#i-external"/></svg><span class="hide-narrow">Nueva pestaña</span></button>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button id="btnReloadReyes" class="btn-secondary" type="button" title="Recargar las fichas y gráficos" style="font-size: 0.85rem; padding: 7px 12px;">
+              🔄 Recargar Fichas
+            </button>
+            <button id="btnOpenReyesNewTab" class="btn-secondary" type="button" title="Abrir en ventana o pestaña separada para estudiar a pantalla completa" style="font-size: 0.85rem; padding: 7px 12px;">
+              ↗ Ventana Separada
+            </button>
           </div>
         </div>
         <div class="reyes-iframe-wrapper">
-          <iframe id="reyesIframe" src="" data-src="reyes-memorizador/index.html" title="Memorizador de reyes y profetas" allow="fullscreen"></iframe>
+          <iframe id="reyesIframe" src="" data-src="/reyes-memorizador/index.html" title="Memorizador de Reyes y Profetas de Judá e Israel" allow="fullscreen"></iframe>
         </div>
       </section>
     </section>
   </main>
 
-  <!-- ============================== MODALES ============================== -->
-
-  <!-- Nuevo día en el documento mensual -->
+  <!-- ================================================================ -->
+  <!-- ================================================================ -->
+  <!-- MODAL 1: AÑADIR NUEVO DÍA AL DOCUMENTO MENSUAL                   -->
+  <!-- ================================================================ -->
   <div id="newDayModal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content new-day-modal-box">
       <div class="modal-header">
-        <div id="newDayModalTitle" class="modal-title">Nueva entrada</div>
-        <button id="btnCloseNewDayModal" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div id="newDayModalTitle" class="modal-title">
+          📅 Añadir Día al Documento Mensual
+        </div>
+        <button id="btnCloseNewDayModal" class="modal-close">&times;</button>
       </div>
       <form id="newDayForm">
         <div class="modal-body">
-          <p id="newDayModalDesc" class="modal-desc">La entrada se añade al documento del mes con su fecha y título al principio.</p>
+          <p id="newDayModalDesc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">
+            Cada entrada se añade de forma ordenada dentro del documento mensual, mostrando al principio la <strong>fecha marcada</strong> y el <strong>título de la entrada</strong>.
+          </p>
+
           <div class="form-group">
-            <label class="form-label" for="newDayDateInput">Fecha</label>
-            <input type="date" id="newDayDateInput" class="form-input" required>
-            <div id="newDayCalculatedInfo" class="form-help"></div>
+            <label class="form-label" style="font-weight: 700; color: #fff; font-size: 0.95rem;">
+              📅 Fecha Marcada:
+            </label>
+            <input type="date" id="newDayDateInput" class="form-input" required style="font-size: 1rem; padding: 10px;">
+            <div id="newDayCalculatedInfo" class="form-help" style="color: var(--gold-primary); font-weight: 600; font-size: 0.9rem; margin-top: 6px;">
+              📍 Fecha marcada: Calculando...
+            </div>
           </div>
+
           <div class="form-group">
-            <label class="form-label" for="newDayTitleInput">Título</label>
-            <input type="text" id="newDayTitleInput" class="form-input" placeholder="Ej.: La perseverancia de Job" required>
+            <label class="form-label" style="font-weight: 700; color: var(--gold-primary); font-size: 1rem;">
+              ✍️ Título de la Entrada:
+            </label>
+            <input 
+              type="text" 
+              id="newDayTitleInput" 
+              class="form-input" 
+              placeholder="Introduce aquí el título de la entrada (ej: La perseverancia de Job ante las pruebas)..."
+              required
+              style="font-size: 1rem; padding: 10px 12px; font-weight: 600; border-color: rgba(212,175,55,0.4);"
+            >
+            <div class="form-help" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+              Este título aparecerá en el encabezado principal de la entrada y en el índice lateral.
+            </div>
           </div>
+
           <div class="form-group">
-            <label class="form-label" for="newDayScriptureInput">Texto bíblico del día <span class="optional">(opcional)</span></label>
-            <input type="text" id="newDayScriptureInput" class="form-input" placeholder="Ej.: Santiago 1:2-4">
+            <label class="form-label">📖 Texto Bíblico del Día (Opcional):</label>
+            <input 
+              type="text" 
+              id="newDayScriptureInput" 
+              class="form-input" 
+              placeholder="Ej: Santiago 1:2-4 o Proverbios 3:5, 6"
+            >
           </div>
-          <div class="entry-header-preview-box">
-            <div class="preview-label">Vista previa del encabezado</div>
-            <div id="newDayPreviewHeading" class="preview-heading"></div>
+
+          <div class="entry-header-preview-box" style="margin-top: 10px; padding: 10px 14px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px dashed rgba(212,175,55,0.35); font-size: 0.85rem;">
+            <span style="color: var(--gold-primary); font-weight: 600;">👀 Encabezado al inicio de la entrada:</span>
+            <div id="newDayPreviewHeading" style="color: #cbd5e1; margin-top: 4px; font-family: monospace;">
+              ## 📅 DÍA 18 • Fecha: ... <br># ✍️ Título: ...
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
+
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px;">
           <button type="button" id="btnCancelNewDay" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Añadir entrada</button>
+          <button type="submit" class="btn-primary" style="font-size: 0.95rem; padding: 8px 20px;">
+            ✓ Insertar Entrada (con Fecha y Título)
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Nuevo documento en carpeta -->
+  <!-- ================================================================ -->
+  <!-- MODAL 2: AÑADIR DOCUMENTO A CARPETA (BASE DE DATOS NOTION)       -->
+  <!-- ================================================================ -->
   <div id="newFolderDocModal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content new-day-modal-box">
       <div class="modal-header">
-        <div id="folderDocModalTitle" class="modal-title">Nuevo documento</div>
-        <button id="btnCloseFolderDocModal" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div id="folderDocModalTitle" class="modal-title">
+          📄 Nuevo Documento en la Carpeta
+        </div>
+        <button id="btnCloseFolderDocModal" class="modal-close">&times;</button>
       </div>
       <form id="newFolderDocForm">
         <input type="hidden" id="folderDocCategoryInput" value="events">
         <input type="hidden" id="folderDocSubCategoryInput" value="bethel_talks">
+
         <div class="modal-body">
-          <p id="folderDocModalDesc" class="modal-desc">Se guardará en esta carpeta.</p>
+          <p id="folderDocModalDesc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">
+            Este documento se guardará permanentemente en la base de datos de esta carpeta.
+          </p>
+
           <div class="form-group">
-            <label class="form-label" for="folderDocTitleInput">Título</label>
-            <input type="text" id="folderDocTitleInput" class="form-input" placeholder="Ej.: Cómo cultivar paciencia y gozo" required>
+            <label class="form-label">✍️ Título del Documento:</label>
+            <input 
+              type="text" 
+              id="folderDocTitleInput" 
+              class="form-input" 
+              placeholder="Ej: Discurso: Cómo cultivar paciencia y gozo constante"
+              required
+            >
           </div>
-          <div class="form-grid-2">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div class="form-group">
-              <label class="form-label" for="folderDocDateInput">Fecha</label>
+              <label class="form-label">📅 Fecha:</label>
               <input type="date" id="folderDocDateInput" class="form-input" required>
             </div>
             <div class="form-group">
-              <label class="form-label" for="folderDocIconSelect">Icono</label>
+              <label class="form-label">Icono:</label>
               <select id="folderDocIconSelect" class="form-input">
-                <option value="🎤" selected>🎤 Discurso</option>
-                <option value="🌐">🌐 Reunión anual</option>
-                <option value="🎓">🎓 Galaad</option>
-                <option value="💡">💡 Idea</option>
+                <option value="🎤" selected>🎤 Micrófono (Discurso)</option>
+                <option value="🌐">🌐 Globo (Annual Meeting)</option>
+                <option value="🎓">🎓 Birrete (Gilead)</option>
+                <option value="💡">💡 Bombilla (Spiritual Note)</option>
                 <option value="📜">📜 Pergamino</option>
                 <option value="🏛️">🏛️ Evento</option>
                 <option value="🕊️">🕊️ Paloma</option>
                 <option value="🛡️">🛡️ Escudo</option>
                 <option value="💎">💎 Diamante</option>
-                <option value="📄">📄 Documento</option>
               </select>
             </div>
           </div>
+
           <div class="form-group">
-            <label class="form-label" for="folderDocSpeakerInput">Orador o fuente <span class="optional">(opcional)</span></label>
-            <input type="text" id="folderDocSpeakerInput" class="form-input" placeholder="Ej.: Discurso de Betel">
+            <label class="form-label">👤 Orador / Fuente de la Información:</label>
+            <input 
+              type="text" 
+              id="folderDocSpeakerInput" 
+              class="form-input" 
+              placeholder="Ej: Hno. Mark Sanderson (Miembro del Cuerpo Gobernante) / Betel"
+            >
           </div>
+
           <div class="form-group">
-            <label class="form-label" for="folderDocTagsInput">Etiquetas <span class="optional">(separadas por comas)</span></label>
-            <input type="text" id="folderDocTagsInput" class="form-input" placeholder="paciencia, amor, gozo">
+            <label class="form-label">🔖 Etiquetas temáticas (separadas por coma):</label>
+            <input 
+              type="text" 
+              id="folderDocTagsInput" 
+              class="form-input" 
+              placeholder="Ej: paciencia, bethel, amor, gozo"
+            >
           </div>
         </div>
-        <div class="modal-footer">
+
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px;">
           <button type="button" id="btnCancelFolderDoc" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Crear documento</button>
+          <button type="submit" class="btn-primary" style="font-size: 0.95rem; padding: 8px 20px;">
+            ✓ Guardar Documento en la Base de Datos
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Nuevo año -->
+  <!-- ================================================================ -->
+  <!-- MODAL: PROMPT PARA AÑADIR UN NUEVO AÑO                           -->
+  <!-- ================================================================ -->
   <div id="newYearModal" class="modal-overlay">
-    <div class="modal-content modal-sm">
+    <div class="modal-content" style="max-width: 480px;">
       <div class="modal-header">
-        <div class="modal-title">Añadir año</div>
-        <button id="btnCloseNewYearModal" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div class="modal-title">
+          ➕ Añadir Nuevo Año de Estudio
+        </div>
+        <button id="btnCloseNewYearModal" class="modal-close">&times;</button>
       </div>
       <form id="newYearForm">
         <div class="modal-body">
-          <p class="modal-desc">El año aparecerá en Daily Text con sus 12 meses disponibles.</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">
+            Introduce el año que deseas incorporar al árbol de Daily Text Comments (ej: 2027, 2028). Tendrá inmediatamente disponibles los 12 meses para tus apuntes.
+          </p>
           <div class="form-group">
-            <label class="form-label" for="newYearNumberInput">Año</label>
-            <input type="number" id="newYearNumberInput" class="form-input" min="2020" max="2100" value="2027" required>
+            <label class="form-label">Año a incorporar:</label>
+            <input type="number" id="newYearNumberInput" class="form-input" min="2020" max="2050" value="2027" required>
           </div>
         </div>
-        <div class="modal-footer">
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px;">
           <button type="button" id="btnCancelNewYear" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Añadir</button>
+          <button type="submit" class="btn-primary" style="padding: 8px 18px;">
+            ✓ Añadir Año
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Búsqueda -->
-  <div id="searchModal" class="modal-overlay modal-top">
+  <!-- ================================================================ -->
+  <!-- MODAL DE BÚSQUEDA GLOBAL RÁPIDA CON LUPA (🔍)                     -->
+  <!-- ================================================================ -->
+  <div id="searchModal" class="modal-overlay">
     <div class="modal-content search-modal-box">
+      <div class="modal-header">
+        <div class="modal-title">
+          🔍 Búsqueda Rápida en toda la Base de Datos
+        </div>
+        <button id="btnCloseSearch" class="modal-close">&times;</button>
+      </div>
       <div class="search-modal-subheader">
         <div class="search-modal-input-box">
-          <svg class="i"><use href="#i-search"/></svg>
-          <input type="text" id="modalSearchInput" class="modal-search-input" placeholder="Buscar palabras, versículos o temas…" autocomplete="off">
-          <button id="btnModalSearchClear" class="icon-btn icon-btn-sm" type="button" title="Borrar" style="display: none;"><svg class="i"><use href="#i-x"/></svg></button>
+          <span class="search-modal-lens">🔍</span>
+          <input 
+            type="text" 
+            id="modalSearchInput" 
+            class="modal-search-input" 
+            placeholder="Buscar cualquier palabra, versículo o tema..." 
+            autocomplete="off"
+          >
+          <button id="btnModalSearchClear" class="modal-search-clear-btn" type="button" title="Borrar palabra buscada" style="display: none;">✕</button>
         </div>
-        <span id="searchCountBadge" class="count-badge">0 resultados</span>
-        <button id="btnCloseSearch" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <span id="searchCountBadge" class="cat-count-badge">0 resultados</span>
       </div>
       <div id="searchResultsList" class="search-results-container">
-        <p class="empty-hint">Escribe para buscar en todos tus apuntes.</p>
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">
+          Escribe cualquier palabra, versículo o tema en la barra superior para buscar en todos tus apuntes.
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- Selector de icono -->
+  <!-- ================================================================ -->
+  <!-- MODAL SELECTOR DE EMOTICONOS                                     -->
+  <!-- ================================================================ -->
   <div id="emojiPickerModal" class="modal-overlay">
-    <div class="modal-content modal-sm">
+    <div class="modal-content emoji-picker-box">
       <div class="modal-header">
-        <div class="modal-title">Icono de la entrada</div>
-        <button id="btnCloseEmojiPicker" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div class="modal-title">Selecciona un Emoticono para este Día</div>
+        <button id="btnCloseEmojiPicker" class="modal-close">&times;</button>
       </div>
       <div id="emojiGrid" class="emoji-grid"></div>
     </div>
   </div>
 
-  <!-- Ajustes -->
+  <!-- ================================================================ -->
+  <!-- MODAL DE AJUSTES Y GEMINI API                                    -->
+  <!-- ================================================================ -->
   <div id="configModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">Ajustes</div>
-        <button id="btnCloseConfig" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div class="modal-title">⚙️ Configuración del Juego y de la IA</div>
+        <button id="btnCloseConfig" class="modal-close">&times;</button>
       </div>
       <form id="configForm">
         <div class="modal-body">
-          <section class="settings-section">
-            <h3 class="settings-title"><svg class="i"><use href="#i-github"/></svg>Sincronización con GitHub</h3>
-            <div id="syncSettingsStatus" class="sync-settings-status">Cargando estado…</div>
-            <div class="settings-actions">
-              <button type="button" id="btnSyncNow" class="btn-secondary"><svg class="i"><use href="#i-refresh"/></svg>Sincronizar ahora</button>
-              <button type="button" id="btnGithubSetup" class="btn-secondary"><svg class="i"><use href="#i-lock"/></svg>Conectar / cambiar token</button>
+          <div class="form-group">
+            <label class="form-label">Google Gemini API Key (Opcional):</label>
+            <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy...">
+            <div class="form-help">
+              Puedes obtener una API Key gratuita en <a href="https://aistudio.google.com/" target="_blank" style="color: var(--blue-accent);">Google AI Studio</a>. Si no ingresas una clave, el sistema usará el motor heurístico local integrado sin conexión de forma ilimitada.
             </div>
-            <div class="settings-actions" style="margin-top: 8px;">
-              <button type="button" id="btnExportLocal" class="btn-secondary"><svg class="i"><use href="#i-download"/></svg>Exportar copia</button>
-              <button type="button" id="btnImportLocal" class="btn-secondary"><svg class="i"><use href="#i-upload"/></svg>Importar copia</button>
-              <input type="file" id="importFileInput" accept=".json,application/json" hidden>
-              <button type="button" id="btnLogout" class="btn-ghost"><svg class="i"><use href="#i-log-out"/></svg>Desconectar este dispositivo</button>
-            </div>
-            <div class="form-help">Cada sincronización es un commit en tu repositorio privado, así que GitHub guarda el historial completo de tus apuntes.</div>
-          </section>
+          </div>
 
-          <section class="settings-section">
-            <h3 class="settings-title"><svg class="i"><use href="#i-bible"/></svg>Biblia sin conexión</h3>
-            <div id="bibleStatus" class="bible-status">Comprobando…</div>
-            <div class="settings-actions">
-              <button type="button" id="btnImportBible" class="btn-secondary"><svg class="i"><use href="#i-upload"/></svg>Importar Biblia (EPUB)</button>
-              <input type="file" id="bibleFileInput" accept=".epub,application/epub+zip" multiple hidden>
-            </div>
-            <div id="bibleProgress" class="bible-progress" hidden><div class="bible-progress-bar"></div><span class="bible-progress-text"></span></div>
-            <div class="form-group" style="margin-top: 12px;">
-              <label class="form-label" for="bibleLangSelect">Idioma de los versículos</label>
-              <select id="bibleLangSelect" class="form-input">
-                <option value="auto">Automático (según la cita y la nota)</option>
-                <option value="es">Siempre español</option>
-                <option value="en">Always English</option>
-              </select>
-            </div>
-            <div class="form-help">Descarga la Traducción del Nuevo Mundo en formato <strong>EPUB</strong> desde jw.org (español y/o inglés) e impórtala aquí; puedes elegir los dos archivos a la vez. Se guarda <strong>solo en este dispositivo</strong>, no se sube a GitHub. Luego selecciona una cita en tu nota (por ejemplo <em>Juan 3:16</em> o <em>Prov. 3:5, 6</em>) y pulsa <strong>Versículo</strong>.</div>
-          </section>
+          <div class="form-group">
+            <label class="form-label">Meta de Puntos para Ganar:</label>
+            <input type="number" id="targetScoreInput" class="form-input" min="20" max="500" step="10" value="100">
+            <div class="form-help">Por defecto son 100 puntos (exactamente 20 preguntas acertadas a 5 puntos cada una).</div>
+          </div>
 
-          <section class="settings-section">
-            <h3 class="settings-title"><svg class="i"><use href="#i-sparkles"/></svg>Inteligencia artificial</h3>
-            <div class="form-group">
-              <label class="form-label" for="apiKeyInput">Clave de Google Gemini <span class="optional">(opcional)</span></label>
-              <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy…" autocomplete="off">
-              <div class="gemini-key-row">
-                <button type="button" id="btnTestGeminiKey" class="btn-secondary btn-sm"><svg class="i"><use href="#i-sparkles"/></svg>Probar clave</button>
-                <span id="geminiKeyStatus" class="gemini-key-status"></span>
-              </div>
-              <div class="form-help">Gratis en <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>. Se guarda solo en este dispositivo. Pega la clave y pulsa <strong>Probar clave</strong>: si funciona, queda guardada en este dispositivo. Sin clave, «Revisar con IA» solo corrige ortografía básica.</div>
-            </div>
-          </section>
+          <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: 1.5rem 0;">
 
-          <section class="settings-section">
-            <h3 class="settings-title"><svg class="i"><use href="#i-trophy"/></svg>Concurso</h3>
-            <div class="form-group">
-              <label class="form-label" for="targetScoreInput">Meta de puntos</label>
-              <input type="number" id="targetScoreInput" class="form-input" min="20" max="500" step="10" value="100">
-              <div class="form-help">100 puntos = 20 aciertos de 5 puntos.</div>
+          <!-- Sección de Respaldo y Copias de Seguridad -->
+          <div class="form-group">
+            <label class="form-label">💾 Copia de Seguridad y Respaldo en GitHub:</label>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">
+              Tus apuntes se guardan automáticamente con copias rotativas locales. También puedes descargar tu base de datos o sincronizar con tu repositorio de GitHub.
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <a href="/api/backup/download" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.88rem;">
+                📥 Descargar Copia (.json)
+              </a>
+              <button type="button" id="btnSyncGitHub" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.88rem; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                🚀 Subir a GitHub
+              </button>
             </div>
-          </section>
-          <!-- Compatibilidad: el antiguo botón de GitHub ya no se usa -->
-          <button type="button" id="btnSyncGitHub" hidden></button>
-          <div id="gitSyncStatusText" hidden></div>
+            <div id="gitSyncStatusText" style="font-size: 0.82rem; margin-top: 8px; color: var(--gold-primary); display: none;"></div>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn-primary">Guardar ajustes</button>
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="submit" class="btn-primary" style="font-size: 0.95rem; padding: 8px 18px;">
+            Guardar Ajustes
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Nueva categoría -->
+  <!-- ================================================================ -->
+  <!-- MODAL DE NUEVA CATEGORÍA O SUBCATEGORÍA                          -->
+  <!-- ================================================================ -->
   <div id="newCategoryModal" class="modal-overlay">
-    <div class="modal-content modal-sm">
+    <div class="modal-content" style="max-width: 500px;">
       <div class="modal-header">
-        <div class="modal-title">Nueva carpeta</div>
-        <button id="btnCloseCategoryModal" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div class="modal-title">🏷️ Nueva Categoría o Subcategoría</div>
+        <button id="btnCloseCategoryModal" class="modal-close">&times;</button>
       </div>
       <form id="newCategoryForm">
         <div class="modal-body">
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.2rem;">
+            Añade tus propias secciones organizativas para tus apuntes personales, discursos, investigaciones o temas de estudio.
+          </p>
+
           <div class="form-group">
-            <label class="form-label" for="newCategoryTypeSelect">Tipo</label>
-            <select id="newCategoryTypeSelect" class="form-input">
-              <option value="main">Carpeta principal</option>
-              <option value="sub">Subcarpeta (dentro de otra)</option>
+            <label class="form-label">Tipo de Sección:</label>
+            <select id="newCategoryTypeSelect" class="form-select">
+              <option value="main">📁 Categoría Principal</option>
+              <option value="sub">📂 Subcategoría (dentro de una existente)</option>
             </select>
           </div>
+
           <div id="parentCategoryWrapper" class="form-group" style="display: none;">
-            <label class="form-label" for="parentCategorySelect">Dentro de</label>
-            <select id="parentCategorySelect" class="form-input"></select>
+            <label class="form-label">Categoría Principal Padre:</label>
+            <select id="parentCategorySelect" class="form-select">
+              <!-- Se cargan dinámicamente -->
+            </select>
           </div>
-          <div class="form-grid-icon">
-            <div class="form-group">
-              <label class="form-label" for="newCategoryIconInput">Icono</label>
-              <input type="text" id="newCategoryIconInput" class="form-input icon-input" value="📁" maxlength="4">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="newCategoryNameInput">Nombre</label>
-              <input type="text" id="newCategoryNameInput" class="form-input" placeholder="Ej.: Asambleas" required>
+
+          <div class="form-group">
+            <label class="form-label">Nombre de la Categoría:</label>
+            <input type="text" id="newCategoryNameInput" class="form-input" placeholder="ej: Asambleas, Proverbios, Familia..." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Icono o Emoticono:</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="newCategoryIconInput" class="form-input" value="📁" style="width: 70px; text-align: center; font-size: 1.3rem;">
+              <span style="font-size: 0.82rem; color: var(--text-muted);">Usa cualquier emoji (ej: 🏛️, 🎤, 📖, 💡, 🌿, 🛡️)</span>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px;">
           <button type="button" id="btnCancelCategoryModal" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Crear</button>
+          <button type="submit" class="btn-primary" style="padding: 8px 18px;">✓ Crear Categoría</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Preguntas guardadas -->
+  <!-- ================================================================ -->
+  <!-- MODAL DE PREGUNTAS GUARDADAS                                     -->
+  <!-- ================================================================ -->
   <div id="questionsModal" class="modal-overlay">
-    <div class="modal-content modal-lg">
+    <div class="modal-content" style="max-width: 800px;">
       <div class="modal-header">
-        <div id="questionsModalTitle" class="modal-title">Preguntas</div>
-        <button id="btnCloseQuestions" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div id="questionsModalTitle" class="modal-title">Banco de Preguntas</div>
+        <button id="btnCloseQuestions" class="modal-close">&times;</button>
       </div>
       <div class="modal-body" id="questionsModalList"></div>
     </div>
   </div>
 
-  <!-- Clave de Gemini -->
+  <!-- ================================================================ -->
+  <!-- MODAL DE CLAVE GEMINI API (CONECTAR EN 1 CLIC)                   -->
+  <!-- ================================================================ -->
   <div id="geminiKeyPromptModal" class="modal-overlay">
-    <div class="modal-content modal-sm">
+    <div class="modal-content" style="max-width: 520px;">
       <div class="modal-header">
-        <div class="modal-title">Conectar con Google Gemini</div>
-        <button id="btnCloseGeminiKeyPrompt" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div class="modal-title">✨ Conectar con Google Gemini</div>
+        <button id="btnCloseGeminiKeyPrompt" class="modal-close">&times;</button>
       </div>
       <form id="geminiKeyPromptForm">
         <div class="modal-body">
-          <p class="modal-desc">Para revisar la ortografía y la redacción con Gemini, introduce tu clave gratuita. Se guarda solo en este dispositivo.</p>
+          <p style="color: var(--text-light); font-size: 0.92rem; margin-bottom: 12px; line-height: 1.5;">
+            Para que la IA revise tu ortografía y mejore tus notas con <strong>Google Gemini</strong>, introduce tu API Key gratuita. Se guardará de inmediato para que siempre funcione con 1 solo clic.
+          </p>
           <div class="form-group">
-            <label class="form-label" for="geminiPromptKeyInput">Clave de API</label>
-            <input type="password" id="geminiPromptKeyInput" class="form-input" placeholder="AIzaSy…" required autocomplete="off">
-            <div class="form-help">Consíguela en <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>.</div>
+            <label class="form-label">Google Gemini API Key:</label>
+            <input type="password" id="geminiPromptKeyInput" class="form-input" placeholder="AIzaSy..." required autocomplete="off">
+            <div class="form-help">
+              Consíguela gratis en <a href="https://aistudio.google.com/" target="_blank" style="color: var(--blue-accent); text-decoration: underline;">Google AI Studio</a>.
+            </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" id="btnCancelGeminiPrompt" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">Guardar y continuar</button>
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" id="btnCancelGeminiPrompt" class="btn-secondary" style="padding: 8px 16px;">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" style="padding: 8px 20px;">
+            ⚡ Guardar y Continuar
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Insertar texto bíblico -->
+  <!-- ================================================================ -->
+  <!-- MODAL DE CONSULTA E INSERCIÓN BÍBLICA (JW.ORG / TNM)             -->
+  <!-- ================================================================ -->
   <div id="scriptureLookupModal" class="modal-overlay">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 580px;">
       <div class="modal-header">
-        <div class="modal-title">Insertar texto bíblico</div>
-        <button id="btnCloseScriptureLookupModal" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+        <div class="modal-title">📖 Insertar Cita Bíblica (TNM / NWT)</div>
+        <button id="btnCloseScriptureLookupModal" class="modal-close">&times;</button>
       </div>
       <form id="scriptureLookupForm">
         <div class="modal-body">
-          <p class="modal-desc">Escribe la cita en español o inglés (ej.: <em>Mateo 4:5</em>, <em>1 Cor. 13:4-8</em>). Se consulta la Traducción del Nuevo Mundo en jw.org.</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+            Escribe la cita bíblica (completa o abreviada en español o inglés, ej: <em>Mateo 4:5</em>, <em>Matt. 4:5</em>, <em>1 Cor. 13:4-8</em>, <em>Prov. 3:5, 6</em>). Se consultará automáticamente la Traducción del Nuevo Mundo oficial en jw.org.
+          </p>
           <div class="form-group">
-            <label class="form-label" for="scriptureLookupInput">Cita</label>
-            <div class="input-with-btn">
-              <input type="text" id="scriptureLookupInput" class="form-input" placeholder="Mateo 4:5" required autocomplete="off">
-              <button type="button" id="btnSearchScriptureLookup" class="btn-secondary"><svg class="i"><use href="#i-search"/></svg>Buscar</button>
+            <label class="form-label">Cita Bíblica:</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="scriptureLookupInput" class="form-input" placeholder="ej: Mateo 4:5 o Matt. 4:5" required autocomplete="off" style="flex: 1;">
+              <button type="button" id="btnSearchScriptureLookup" class="btn-secondary" style="padding: 8px 16px;">
+                🔍 Buscar
+              </button>
             </div>
           </div>
           <div id="scriptureLookupPreviewBox" class="scripture-lookup-preview-box" style="display: none;">
             <div class="lookup-preview-header">
-              <span id="scriptureLookupRefBadge" class="lookup-ref-badge"></span>
-              <span id="scriptureLookupSourceBadge" class="lookup-source-badge">TNM</span>
+              <span id="scriptureLookupRefBadge" class="lookup-ref-badge">Matthew 4:5</span>
+              <span id="scriptureLookupSourceBadge" class="lookup-source-badge">TNM / jw.org</span>
             </div>
             <div id="scriptureLookupTextPreview" class="lookup-text-preview"></div>
           </div>
         </div>
-        <div class="modal-footer">
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px;">
           <button type="button" id="btnCancelScriptureLookup" class="btn-secondary">Cancelar</button>
-          <button type="submit" id="btnSubmitScriptureLookup" class="btn-primary">Insertar</button>
+          <button type="submit" id="btnSubmitScriptureLookup" class="btn-primary" style="padding: 8px 20px;">
+            ✓ Insertar en el Apunte
+          </button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Scripts -->
-  <script src="js/engine.js?v=3.3.2"></script>
-  <script src="js/bible.js?v=3.3.2"></script>
-  <script src="js/offline.js?v=3.3.2"></script>
-  <script src="js/sound.js?v=3.3.2"></script>
-  <script src="js/rosco.js?v=3.3.2"></script>
-  <script src="js/game.js?v=3.3.2"></script>
-  <script src="js/notes.js?v=3.3.2"></script>
-  <script src="js/app-shell.js?v=3.3.2"></script>
+  <script src="js/sound.js?v=20260921_v10"></script>
+  <script src="js/rosco.js?v=20260921_v10"></script>
+  <script src="js/game.js?v=20260921_v10"></script>
+  <script src="js/notes.js?v=20260921_v10"></script>
+  <script src="js/wol-assistant.js?v=20261002_v1"></script>
 </body>
 </html>
