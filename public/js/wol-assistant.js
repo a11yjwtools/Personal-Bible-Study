@@ -13,7 +13,9 @@
   'use strict';
 
   // Primero los modelos Flash completos (manejan mejor la búsqueda); luego los «lite».
-  const MODELS = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest'];
+  // En el nivel gratuito de Gemini, la búsqueda de Google solo está incluida en los modelos 2.5 Flash;
+  // por eso se prueban primero. Los demás quedan como respaldo para cuentas con facturación.
+  const MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-3.6-flash'];
   const WOL = {
     es: { home: 'https://wol.jw.org/es/wol/h/r4/lp-s', search: 'https://wol.jw.org/es/wol/s/r4/lp-s?q=' },
     en: { home: 'https://wol.jw.org/en/wol/h/r1/lp-e', search: 'https://wol.jw.org/en/wol/s/r1/lp-e?q=' }
@@ -32,7 +34,7 @@
     aplicacion: '🎯 Aplicación', 'aplicación': '🎯 Aplicación', application: '🎯 Application'
   };
 
-  const prefs = { auto: readPref('wol_auto', true), includeSource: readPref('wol_source', true) };
+  const prefs = { auto: readPref('wol_auto', false), includeSource: readPref('wol_source', true) };
 
   let editor, textarea, drawer, listEl, statusEl, searchBtn, openBtn;
   let lastRange = null, autoTimer = null, lastRequestAt = 0, lastFocusText = '';
@@ -167,6 +169,7 @@ ${context || '(vacío)'}`;
         const j = await res.json().catch(() => ({}));
         const err = new Error((j.error && j.error.message) || `HTTP ${res.status}`);
         err.status = res.status;
+        err.raw = JSON.stringify(j.error || {});
         throw err;
       }
       return await res.json();
@@ -184,6 +187,7 @@ ${context || '(vacío)'}`;
     const prompt = buildPrompt({ ...input, lang });
     const toolSets = [[{ google_search: {} }, { url_context: {} }], [{ google_search: {} }]];
     let lastErr = '', nonJw = 0;
+    const quotaErrors = [];
 
     for (const model of MODELS) {
       for (const tools of toolSets) {
@@ -204,11 +208,29 @@ ${context || '(vacío)'}`;
           lastErr = e.message;
           console.warn(`[WOL] ${model}:`, e.message);
           if (e.status === 401 || e.status === 403 || /api key/i.test(e.message)) throw new Error('La clave de Gemini no es válida. Revísala en Ajustes.');
+          if (e.status === 429) { quotaErrors.push({ model, msg: e.message + ' ' + (e.raw || '') }); break; } // probar el siguiente modelo
           if (e.status !== 400) break; // 400: herramienta no admitida → probar solo búsqueda
         }
       }
     }
+    if (quotaErrors.length) throw new Error(quotaMessage(quotaErrors));
     throw new Error(lastErr || 'No se pudieron obtener sugerencias de la WOL.');
+  }
+
+  /** Traduce los errores 429 de Google a un mensaje claro. */
+  function quotaMessage(errors) {
+    const all = errors.map(e => e.msg).join(' ');
+    const wait = all.match(/retry in ([\d.]+)\s*s/i) || all.match(/retryDelay"\s*:\s*"([\d.]+)s/i);
+    const onlyZero = errors.every(e => /limit:\s*0\b/.test(e.msg) || /quotaValue"\s*:\s*"0"/.test(e.msg));
+    if (onlyZero) {
+      return 'Tu clave de Gemini (plan gratuito) no incluye la búsqueda de Google en los modelos disponibles. ' +
+        'Para usar las sugerencias de la WOL hace falta activar la facturación en Google AI Studio.';
+    }
+    if (wait && parseFloat(wait[1]) < 120) {
+      return `Demasiadas peticiones seguidas a Gemini. Espera ${Math.ceil(parseFloat(wait[1]))} segundos y pulsa «Buscar ahora» otra vez.`;
+    }
+    return 'Has alcanzado el límite gratuito de Gemini por hoy (lo comparten «Revisar con IA» y las sugerencias). ' +
+      'Vuelve a intentarlo mañana, o revisa tu uso en Google AI Studio.';
   }
 
   // ---------------- interfaz ----------------
