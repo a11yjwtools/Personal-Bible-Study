@@ -1,18 +1,26 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config();
+// La clave de Gemini guardada desde la app vive junto a los datos (volumen del NAS)
+if (process.env.DATA_DIR) {
+  require('dotenv').config({ path: path.join(path.resolve(process.env.DATA_DIR), '.env') });
+}
+const express = require('express');
+const cors = require('cors');
 const multer = require('multer');
 
 const { extractTextFromFile, cleanText } = require('./services/docParser');
 const dbService = require('./services/dbService');
 const { generateQuestionsFromText, generateRoscoQuestions, improveNoteWithAI } = require('./services/aiService');
 const { getScriptureText, parseScriptureRef } = require('./services/scriptureService');
-const { suggestFromWol } = require('./services/wolService');
+const { createAuth } = require('./services/auth');
+const pkg = require('./package.json');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
+const auth = createAuth(dbService.DATA_DIR);
+app.set('trust proxy', true);
+app.disable('x-powered-by');
 
 // Configurar multer para subidas en la carpeta apuntes
 const storage = multer.diskStorage({
@@ -35,9 +43,69 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// CORS: la misma app servida desde otro origen (p. ej. GitHub Pages) puede
+// hablar con el NAS si ese origen aparece en ALLOWED_ORIGINS.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',').map(o => o.trim().replace(/\/$/, '')).filter(Boolean);
+// Chrome exige este permiso cuando una web pública (GitHub Pages) llama a una
+// dirección privada (Tailscale / red de casa).
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS' && req.headers['access-control-request-private-network']) {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  }
+  next();
+});
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(null, false);
+  },
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  maxAge: 86400
+}));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders(res, filePath) {
+    // El service worker y el HTML siempre se revalidan para recibir actualizaciones
+    if (/(sw\.js|index\.html|manifest\.json)$/.test(filePath)) res.setHeader('Cache-Control', 'no-cache');
+  }
+}));
+
+// ==========================================
+// SALUD, INICIO DE SESIÓN Y SINCRONIZACIÓN
+// ==========================================
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, app: 'estudio-personal', version: pkg.version, authRequired: auth.enabled, time: new Date().toISOString() });
+});
+
+app.post('/api/auth/login', auth.loginHandler);
+
+// Todo lo que está debajo requiere sesión (si APP_PASSWORD está definida)
+app.use('/api', auth.middleware);
+
+app.get('/api/auth/check', (req, res) => res.json({ success: true }));
+
+// Cambios desde una secuencia dada (los dispositivos descargan solo lo nuevo)
+app.get('/api/sync/changes', (req, res) => {
+  try {
+    res.json({ success: true, ...dbService.getChangesSince(req.query.since) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Subida de los cambios hechos sin conexión
+app.post('/api/sync/push', (req, res) => {
+  try {
+    const ops = Array.isArray(req.body && req.body.ops) ? req.body.ops.slice(0, 2000) : [];
+    const results = dbService.applySyncOps(ops);
+    res.json({ success: true, results, seq: dbService.loadDb().meta.seq });
+  } catch (err) {
+    console.error('[Sync] Error aplicando cambios:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 dbService.syncApuntesFolder().catch(err => console.error('Error al sincronizar apuntes:', err));
 
@@ -213,46 +281,6 @@ app.get('/api/backup/download', (req, res) => {
   }
 });
 
-// Sincronizar / Push a GitHub
-app.post('/api/backup/git-push', (req, res) => {
-  const { exec } = require('child_process');
-  const projectDir = path.resolve(__dirname);
-  const commitMsg = `Backup de notas: ${new Date().toLocaleString('es-ES')}`;
-  
-  exec(`git add .`, { cwd: projectDir }, () => {
-    exec(`git commit -m "${commitMsg}"`, { cwd: projectDir }, () => {
-      exec(`git push origin main`, { cwd: projectDir }, (error, stdout, stderr) => {
-        if (error) {
-          console.error('[Git Push Error]:', error.message, stderr);
-          return res.status(500).json({ success: false, error: error.message, details: stderr });
-        }
-        res.json({ success: true, message: 'Copia sincronizada y subida a GitHub con éxito', output: stdout });
-      });
-    });
-  });
-});
-
-// Sincronizar / Pull automático desde GitHub al abrir la aplicación
-app.post('/api/sync/pull', (req, res) => {
-  const { exec } = require('child_process');
-  const projectDir = path.resolve(__dirname);
-
-  exec(`git pull origin main`, { cwd: projectDir }, (error, stdout, stderr) => {
-    if (error) {
-      console.warn('[Git Pull Warning/Offline]:', error.message);
-      return res.json({ success: false, error: error.message, isOffline: true });
-    }
-    const output = (stdout || '').trim();
-    const isAlreadyUpToDate = output.includes('Already up to date') || output.includes('Ya está actualizado');
-    res.json({
-      success: true,
-      updated: !isAlreadyUpToDate,
-      message: isAlreadyUpToDate ? 'Tus notas ya están al día.' : 'Nuevas notas sincronizadas con éxito.',
-      output
-    });
-  });
-});
-
 // Asistente de IA para notas (Corregir, Mejorar con Gemini y Track Changes)
 app.post('/api/notes/:id/ai-assist', async (req, res) => {
   try {
@@ -283,18 +311,6 @@ app.post('/api/notes/:id/ai-assist', async (req, res) => {
   }
 });
 
-// Asistente de sugerencias basado en la Biblioteca en línea Watchtower (wol.jw.org) con Gemini
-app.post('/api/wol/suggest', async (req, res) => {
-  try {
-    const { title, tags, context, focus } = req.body || {};
-    const out = await suggestFromWol({ title, tags, context, focus });
-    res.json({ success: true, ...out });
-  } catch (err) {
-    const status = err.code === 'NO_KEY' ? 400 : err.code === 'BUSY' ? 429 : err.code === 'TOO_SHORT' ? 400 : 502;
-    res.status(status).json({ success: false, code: err.code || 'ERROR', error: err.message });
-  }
-});
-
 // Obtener estado de la clave de Gemini
 app.get('/api/config/ai-status', (req, res) => {
   try {
@@ -319,8 +335,8 @@ app.post('/api/config/gemini-key', (req, res) => {
     }
     const cleanKey = apiKey.trim();
     process.env.GEMINI_API_KEY = cleanKey;
-    const envPath = path.join(__dirname, '.env');
-    fs.writeFileSync(envPath, `GEMINI_API_KEY=${cleanKey}\n`, 'utf8');
+    const envPath = path.join(process.env.DATA_DIR ? dbService.DATA_DIR : __dirname, '.env');
+    fs.writeFileSync(envPath, `GEMINI_API_KEY=${cleanKey}\n`, { encoding: 'utf8', mode: 0o600 });
     dbService.updateConfig({ geminiApiKey: '' });
     res.json({ success: true, message: 'API Key de Gemini guardada de forma segura.' });
   } catch (err) {
@@ -766,14 +782,25 @@ app.get('/api/scripture', async (req, res) => {
   }
 });
 
+app.use('/api', (req, res) => res.status(404).json({ success: false, error: 'Ruta no encontrada.' }));
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Errores no controlados: responder JSON en lugar de HTML
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('[Server] Error:', err);
+  res.status(err.status || 500).json({ success: false, error: err.message || 'Error interno' });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log('=====================================================');
-  console.log(`🎙️  SABER Y GANAR - ESTUDIO PERSONAL`);
-  console.log(`🌐  Servidor iniciado en: http://localhost:${PORT}`);
-  console.log(`📁  Carpeta de apuntes: ${dbService.APUNTES_DIR}`);
+  console.log(`📖  ESTUDIO PERSONAL v${pkg.version}`);
+  console.log(`🌐  Servidor: http://localhost:${PORT}`);
+  console.log(`💾  Datos: ${dbService.DATA_DIR}`);
+  console.log(`📁  Apuntes: ${dbService.APUNTES_DIR}`);
+  console.log(`🔒  Contraseña: ${auth.enabled ? 'activada' : 'DESACTIVADA (define APP_PASSWORD antes de abrirla a Internet)'}`);
   console.log('=====================================================');
 });
