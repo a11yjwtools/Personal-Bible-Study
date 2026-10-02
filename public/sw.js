@@ -1,108 +1,103 @@
-// Service Worker para Estudio Personal (PWA)
-const CACHE_NAME = 'estudio-personal-v3';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/sound.js',
-  '/js/rosco.js',
-  '/js/game.js',
-  '/js/notes.js',
-  '/js/wol-assistant.js',
-  '/css/wol-assistant.css',
-  '/icons/icon.svg',
-  '/manifest.json'
+// ==========================================================================
+// Service Worker — Estudio Personal
+// La app se guarda completa en el dispositivo para abrirse al instante,
+// aunque no haya Internet. Los datos NO pasan por aquí: viven en
+// IndexedDB (js/offline.js) y se sincronizan con tu repositorio de GitHub.
+// ==========================================================================
+const VERSION = 'v3.3.2';
+const SHELL_CACHE = `ep-shell-${VERSION}`;
+const RUNTIME_CACHE = 'ep-runtime-v1';
+
+const SHELL = [
+  './',
+  'index.html',
+  'css/style.css',
+  'js/engine.js',
+  'js/bible.js',
+  'js/offline.js',
+  'js/app-shell.js',
+  'js/sound.js',
+  'js/rosco.js',
+  'js/game.js',
+  'js/notes.js',
+  'icons/icon.svg',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'manifest.json'
 ];
 
-// API routes to cache for offline support
-const API_CACHE_NAME = 'estudio-personal-api-v1';
-const CACHEABLE_API_ROUTES = [
-  '/api/notes',
-  '/api/categories',
-  '/api/years'
-];
+const scopeUrl = (p) => new URL(p, self.registration.scope).href;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
-        console.warn('[PWA SW] Pre-cache parcial:', err);
-      });
-    })
+    caches.open(SHELL_CACHE)
+      .then(cache => Promise.all(SHELL.map(p =>
+        cache.add(new Request(scopeUrl(p), { cache: 'reload' })).catch(err => console.warn('[SW] No se pudo guardar', p, err))
+      )))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME && key !== API_CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
+    caches.keys()
+      .then(keys => Promise.all(keys
+        .filter(k => k.startsWith('ep-shell-') && k !== SHELL_CACHE || k.startsWith('estudio-personal-'))
+        .map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Check if a URL is a cacheable API route
-function isCacheableApiRoute(url) {
-  return CACHEABLE_API_ROUTES.some(route => url.pathname === route);
+function isApi(url) {
+  return url.pathname.includes('/api/');
+}
+
+// Devuelve la copia guardada al momento y la actualiza en segundo plano
+function staleWhileRevalidate(request, cacheName, fallbackKey) {
+  return caches.open(cacheName).then(async cache => {
+    const cached = await cache.match(fallbackKey || request, { ignoreSearch: true });
+    const network = fetch(request)
+      .then(res => {
+        if (res && (res.ok || res.type === 'opaque')) cache.put(fallbackKey || request, res.clone());
+        return res;
+      })
+      .catch(() => null);
+    if (cached) return cached;
+    const res = await network;
+    if (res) return res;
+    return new Response('Sin conexión', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  });
 }
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const { request } = event;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
 
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
+  // Las peticiones a la API nunca se guardan en caché
+  if (isApi(url)) return;
+
+  // Navegación: siempre abrir la app guardada (index.html)
+  if (request.mode === 'navigate' && url.origin === self.location.origin) {
+    const isSubPage = /reyes-memorizador\//.test(url.pathname);
+    event.respondWith(staleWhileRevalidate(request, SHELL_CACHE, isSubPage ? undefined : scopeUrl('index.html')));
     return;
   }
 
-  // For cacheable API routes: Network-first with cache fallback
-  if (isCacheableApiRoute(url)) {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const resClone = networkResponse.clone();
-            caches.open(API_CACHE_NAME).then((cache) => cache.put(event.request, resClone));
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          return caches.match(event.request).then((cached) => {
-            if (cached) {
-              console.log('[PWA SW] Serving cached API response for:', url.pathname);
-              return cached;
-            }
-            // Return empty success response if nothing cached
-            return new Response(JSON.stringify({ success: true, notes: [], categories: [], years: [] }), {
-              headers: { 'Content-Type': 'application/json' }
-            });
-          });
-        })
-    );
+  // Archivos propios de la app
+  if (url.origin === self.location.origin) {
+    const bare = url.origin + url.pathname; // sin "?v=..." para reutilizar la copia guardada
+    const inShell = SHELL.some(p => bare === scopeUrl(p));
+    event.respondWith(staleWhileRevalidate(request, inShell ? SHELL_CACHE : RUNTIME_CACHE, inShell ? bare : undefined));
     return;
   }
 
-  // For other API routes: skip caching
-  if (url.pathname.startsWith('/api/')) {
-    return;
+  // Fuentes de Google: guardarlas para usarlas sin conexión
+  if (/fonts\.(googleapis|gstatic)\.com$/.test(url.hostname)) {
+    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));
   }
+});
 
-  // For static assets: Network-first with cache fallback
-  event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const resClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, resClone));
-        }
-        return networkResponse;
-      })
-      .catch(() => {
-        return caches.match(event.request).then((cached) => {
-          return cached || caches.match('/index.html');
-        });
-      })
-  );
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') self.skipWaiting();
 });
