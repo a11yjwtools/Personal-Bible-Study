@@ -1497,3 +1497,9 @@ main { min-height: calc(100vh - var(--header-h)); }
 .ai-gemini-warning { margin-bottom: 12px; padding: 10px 12px; border-radius: 10px; background: var(--danger-soft); line-height: 1.5; font-size: 14px; }
 .ai-gemini-warning .muted { color: var(--text-2); }
 .btn-link { background: none; border: none; padding: 0; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* La carpeta ocupa toda la fila para que se lea "Carpeta › Subcarpeta" completo */
+.note-properties .prop-folder { grid-column: 1 / -1; }
+.note-properties .prop-folder .prop-input { flex: 0 1 auto; max-width: 100%; }
+#btnSidebarMainAction { min-width: 0; }
+#btnSidebarMainAction span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
