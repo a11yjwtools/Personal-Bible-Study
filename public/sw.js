@@ -20,8 +20,6 @@ const SHELL = [
   'js/rosco.js',
   'js/game.js',
   'js/notes.js',
-  'js/wol-assistant.js',
-  'css/wol-assistant.css',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png',

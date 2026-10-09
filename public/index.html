@@ -18,8 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Kalam:wght@400;700&family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.3.2">
-  <link rel="stylesheet" href="css/wol-assistant.css?v=3.3.3">
+  <link rel="stylesheet" href="css/style.css?v=3.3.3">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#faf9f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
@@ -259,7 +258,7 @@
                     <label class="prop-label" for="noteDateInput"><svg class="i"><use href="#i-calendar"/></svg>Fecha</label>
                     <input type="date" id="noteDateInput" class="prop-input">
                   </div>
-                  <div class="prop">
+                  <div class="prop prop-folder">
                     <label class="prop-label" for="noteCategorySelect"><svg class="i"><use href="#i-folder"/></svg>Carpeta</label>
                     <select id="noteCategorySelect" class="prop-input">
                       <option value="daily_text">🌅 Daily Text Comments</option>
@@ -764,7 +763,7 @@
             <h3 class="settings-title"><svg class="i"><use href="#i-sparkles"/></svg>Inteligencia artificial</h3>
             <div class="form-group">
               <label class="form-label" for="apiKeyInput">Clave de Google Gemini <span class="optional">(opcional)</span></label>
-              <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy…" autocomplete="off">
+              <input type="password" id="apiKeyInput" class="form-input" placeholder="AQ.… o AIza…" autocomplete="off">
               <div class="gemini-key-row">
                 <button type="button" id="btnTestGeminiKey" class="btn-secondary btn-sm"><svg class="i"><use href="#i-sparkles"/></svg>Probar clave</button>
                 <span id="geminiKeyStatus" class="gemini-key-status"></span>
@@ -854,7 +853,7 @@
           <p class="modal-desc">Para revisar la ortografía y la redacción con Gemini, introduce tu clave gratuita. Se guarda solo en este dispositivo.</p>
           <div class="form-group">
             <label class="form-label" for="geminiPromptKeyInput">Clave de API</label>
-            <input type="password" id="geminiPromptKeyInput" class="form-input" placeholder="AIzaSy…" required autocomplete="off">
+            <input type="password" id="geminiPromptKeyInput" class="form-input" placeholder="AQ.… o AIza…" required autocomplete="off">
             <div class="form-help">Consíguela en <a href="https://aistudio.google.com/" target="_blank" rel="noopener">Google AI Studio</a>.</div>
           </div>
         </div>
@@ -900,14 +899,13 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/engine.js?v=3.3.2"></script>
-  <script src="js/bible.js?v=3.3.2"></script>
-  <script src="js/offline.js?v=3.3.2"></script>
-  <script src="js/sound.js?v=3.3.2"></script>
-  <script src="js/rosco.js?v=3.3.2"></script>
-  <script src="js/game.js?v=3.3.2"></script>
-  <script src="js/notes.js?v=3.3.2"></script>
-  <script src="js/app-shell.js?v=3.3.2"></script>
-  <script src="js/wol-assistant.js?v=3.3.3"></script>
+  <script src="js/engine.js?v=3.3.3"></script>
+  <script src="js/bible.js?v=3.3.3"></script>
+  <script src="js/offline.js?v=3.3.3"></script>
+  <script src="js/sound.js?v=3.3.3"></script>
+  <script src="js/rosco.js?v=3.3.3"></script>
+  <script src="js/game.js?v=3.3.3"></script>
+  <script src="js/notes.js?v=3.3.3"></script>
+  <script src="js/app-shell.js?v=3.3.3"></script>
 </body>
 </html>
