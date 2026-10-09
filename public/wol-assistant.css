@@ -1,0 +1,53 @@
+/* Panel lateral «WOL» (búsqueda en la WOL y Copilot) — usa los colores de la app */
+.wol-open-btn { margin-left: 6px; }
+.wol-open-btn[aria-expanded="true"] { background: var(--accent-soft-2); }
+
+.wolp {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(380px, 100%);
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--surface); color: var(--text);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-ui);
+  transform: translateX(105%);
+  transition: transform 0.22s ease;
+  z-index: 400;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow-y: auto;
+}
+.wolp.open { transform: translateX(0); }
+.wolp [hidden] { display: none !important; }
+
+.wolp-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 10px 0 12px; border-bottom: 1px solid var(--border); }
+.wolp-tabs { display: flex; gap: 2px; }
+.wolp-tab { background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 10px; font-size: 0.86rem; font-weight: 600; color: var(--text-2); cursor: pointer; }
+.wolp-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.wolp-close { background: none; border: none; color: var(--text-2); font-size: 1.05rem; padding: 4px 8px; cursor: pointer; border-radius: var(--r-sm); }
+.wolp-close:hover { background: var(--surface-2); }
+
+.wolp-section { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 4px; }
+.wolp-label { font-size: 0.8rem; font-weight: 600; color: var(--text-2); }
+.wolp-field { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-family: var(--font-read); font-size: 0.95rem; line-height: 1.45; resize: vertical; }
+.wolp-field:focus { outline: none; box-shadow: var(--focus); border-color: var(--accent); }
+.wolp-fixed { padding: 9px 11px; border-radius: var(--r-md); background: var(--accent-soft); border: 1px solid var(--accent-soft-2); color: var(--accent); font-weight: 600; font-size: 0.88rem; user-select: none; }
+.wolp-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.wolp-primary, .wolp-secondary { flex: 1; min-width: 130px; border-radius: var(--r-sm); padding: 9px 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer; }
+.wolp-primary { background: var(--accent); color: var(--accent-contrast); border: none; }
+.wolp-primary:hover { background: var(--accent-hover); }
+.wolp-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
+.wolp-secondary:hover { background: var(--surface-2); }
+.wolp-help { margin: 2px 0 0; font-size: 0.78rem; line-height: 1.5; color: var(--text-3); }
+.wolp-status { padding: 6px 16px 14px; font-size: 0.84rem; color: var(--text-2); min-height: 1.2em; }
+.wolp-status.ok { color: var(--success); }
+.wolp-status.error { color: var(--danger); }
+
+/* Pantallas grandes: el apunte se aparta para dejar sitio al panel */
+@media (min-width: 1100px) {
+  body.wolp-open #notionSection { padding-right: 380px; }
+}
+/* Móvil: panel a pantalla completa */
+@media (max-width: 700px) {
+  .wolp { width: 100%; border-left: none; }
+}
