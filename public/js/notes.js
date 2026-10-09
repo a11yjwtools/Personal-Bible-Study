@@ -936,13 +936,31 @@
     }
   }
 
-  // Subcarpeta a conservar al guardar (sirve para eventos y carpetas personalizadas)
-  function resolveSubCategory(note, category) {
-    if (category === 'events') return dom.noteSubCategorySelect ? dom.noteSubCategorySelect.value : (note.subCategory || '');
-    if (category === 'daily_text') return '';
+  // ------------------------------------------------------------------
+  // Carpeta y subcarpeta: el selector "Carpeta" muestra las carpetas y sus
+  // subcarpetas (↳). Internamente se guarda siempre como
+  // { category: carpeta principal, subCategory: subcarpeta }.
+  // ------------------------------------------------------------------
+  function findParentOfSub(id) {
+    if (!id || notesState.categories.some(c => c.id === id)) return null;
+    return notesState.categories.find(c => (c.subCategories || []).some(s => s.id === id)) || null;
+  }
+
+  // Valor del selector para una nota (la subcarpeta si la tiene)
+  function folderSelectValue(note) {
+    const category = note.category || 'daily_text';
+    if (findParentOfSub(category)) return category; // datos antiguos: la subcarpeta guardada como carpeta
     const cat = notesState.categories.find(c => c.id === category);
-    if (cat && note.subCategory && (cat.subCategories || []).some(sc => sc.id === note.subCategory)) return note.subCategory;
-    return '';
+    if (cat && note.subCategory && (cat.subCategories || []).some(s => s.id === note.subCategory)) return note.subCategory;
+    return category;
+  }
+
+  // Lo elegido en el selector → { category, subCategory }
+  function readFolderSelection() {
+    const value = dom.noteCategorySelect ? dom.noteCategorySelect.value : 'daily_text';
+    const parent = findParentOfSub(value);
+    if (parent) return { category: parent.id, subCategory: value };
+    return { category: value, subCategory: '' };
   }
 
   async function saveActiveNoteNow() {
@@ -973,8 +991,7 @@
       title: dom.noteTitleInput.value.trim() || 'Entrada diaria sin título',
       date: dateVal,
       icon: dom.noteIconBtn.textContent.trim() || '📝',
-      category: dom.noteCategorySelect.value,
-      subCategory: resolveSubCategory(note, dom.noteCategorySelect.value),
+      ...readFolderSelection(),
       year: dom.noteYearInput ? parseInt(dom.noteYearInput.value, 10) : (dateParsed.year || new Date().getFullYear()),
       month: dom.noteMonthSelect ? dom.noteMonthSelect.value : (dateParsed.month || MONTHS_LIST[new Date().getMonth()]),
       day: dateParsed.day,
@@ -1372,7 +1389,9 @@
   function openNewFolderDocPrompt() {
     const f = notesState.currentFilter;
     const cat = (f.category && f.category !== 'daily_text' && f.category !== 'all') ? f.category : 'events';
-    const subCat = (cat === 'events') ? (f.subCategory || 'bethel_talks') : '';
+    const catObjForSub = notesState.categories.find(c => c.id === cat);
+    const validSub = f.subCategory && catObjForSub && (catObjForSub.subCategories || []).some(s => s.id === f.subCategory) ? f.subCategory : '';
+    const subCat = (cat === 'events') ? (validSub || 'bethel_talks') : validSub;
 
     dom.folderDocCategoryInput.value = cat;
     dom.folderDocSubCategoryInput.value = subCat;
@@ -1393,6 +1412,8 @@
     } else if (cat === 'spiritual_notes') {
       folderName = 'Spiritual Notes';
       defaultIcon = '💡';
+      const subObj = subCat && catObjForSub && (catObjForSub.subCategories || []).find(sc => sc.id === subCat);
+      if (subObj) { folderName = `Spiritual Notes › ${subObj.name}`; defaultIcon = subObj.icon || defaultIcon; }
     } else {
       const catObj = notesState.categories.find(c => c.id === cat);
       if (catObj) {
@@ -1551,7 +1572,7 @@
       if (dom.noteIconBtn) dom.noteIconBtn.textContent = note.icon || '📝';
       if (dom.noteTitleInput) dom.noteTitleInput.value = note.title || '';
       if (dom.noteDateInput) dom.noteDateInput.value = note.date || new Date().toISOString().split('T')[0];
-      if (dom.noteCategorySelect) dom.noteCategorySelect.value = note.category || 'daily_text';
+      if (dom.noteCategorySelect) dom.noteCategorySelect.value = folderSelectValue(note);
       if (dom.noteTagsInput) dom.noteTagsInput.value = (note.tags || []).join(', ');
 
       const rawContent = note.content || '';
@@ -1637,7 +1658,7 @@
   }
 
   function updateCategorySelectorsUI(note) {
-    const cat = dom.noteCategorySelect.value;
+    const cat = readFolderSelection().category;
     const subCatContainer = document.getElementById('subCategoryWrapper');
     const monthWrapper = document.getElementById('monthWrapper');
 
@@ -1646,10 +1667,6 @@
       monthWrapper.style.display = 'inline-flex';
       if (dom.noteYearInput) dom.noteYearInput.value = note.year || new Date().getFullYear();
       if (dom.noteMonthSelect) dom.noteMonthSelect.value = note.month || MONTHS_LIST[new Date().getMonth()];
-    } else if (cat === 'events') {
-      subCatContainer.style.display = 'inline-flex';
-      monthWrapper.style.display = 'none';
-      if (dom.noteSubCategorySelect) dom.noteSubCategorySelect.value = note.subCategory || 'bethel_talks';
     } else {
       subCatContainer.style.display = 'none';
       monthWrapper.style.display = 'none';
@@ -2222,9 +2239,10 @@
         }
       } else if (f.category !== 'all') {
         const catObj = notesState.categories.find(c => c.id === f.category);
-        filtered = filtered.filter(n => n.category === f.category);
+        const subIds = catObj ? (catObj.subCategories || []).map(s => s.id) : [];
+        filtered = filtered.filter(n => n.category === f.category || subIds.includes(n.category));
         if (f.subCategory) {
-          filtered = filtered.filter(n => n.subCategory === f.subCategory);
+          filtered = filtered.filter(n => n.subCategory === f.subCategory || n.category === f.subCategory);
           if (catObj && Array.isArray(catObj.subCategories)) {
             const subObj = catObj.subCategories.find(s => s.id === f.subCategory);
             filterTitle = subObj ? `${catObj.name} › ${subObj.name}` : catObj.name;
@@ -3420,10 +3438,9 @@
     dom.noteTextarea.addEventListener('input', scheduleAutoSave);
 
     dom.noteCategorySelect.addEventListener('change', () => {
-      const cat = dom.noteCategorySelect.value;
       const note = notesState.notes.find(n => n.id === notesState.activeNoteId);
       if (note) {
-        note.category = cat;
+        Object.assign(note, readFolderSelection());
         updateCategorySelectorsUI(note);
       }
       scheduleAutoSave();
