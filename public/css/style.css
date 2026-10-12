@@ -524,6 +524,16 @@ main { min-height: calc(100vh - var(--header-h)); }
 }
 .empty-notes-notice .muted { font-size: 12.5px; }
 .empty-notes-notice .btn-sm { margin-top: 6px; }
+.notes-list-add-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; min-height: 38px; margin-top: 6px; padding: 8px 12px;
+  border: 1.5px dashed var(--border-strong); border-radius: var(--r-md);
+  color: var(--text-2); font-size: 13px; font-weight: 500; text-align: left;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.notes-list-add-btn .i { width: 16px; height: 16px; }
+.notes-list-add-btn span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notes-list-add-btn:hover { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 
 /* ==========================================================================
    EDITOR

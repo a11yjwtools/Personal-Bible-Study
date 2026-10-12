@@ -1732,6 +1732,11 @@
   // RENDERIZADO DEL ÁRBOL JERÁRQUICO LATERAL
   // ==========================================
 
+  // Botón «+» de cada subcarpeta: crea un documento nuevo directamente en ella
+  function addDocBtn(cat, sub, name) {
+    return `<button class="tree-action-btn btn-add" data-action="add-doc" data-cat="${escapeHtml(cat)}" data-sub="${escapeHtml(sub)}" title="Nuevo documento en ${escapeHtml(name)}"><svg class="i"><use href="#i-plus"/></svg></button>`;
+  }
+
   function renderSidebarTree() {
     const notes = notesState.notes;
     const selectedYear = notesState.currentFilter.year || new Date().getFullYear();
@@ -1803,6 +1808,7 @@
                   <span class="tree-icon">${sub.icon || '📂'}</span>
                   <span class="tree-label">${escapeHtml(sub.name)}</span>
                   ${subNotes.length > 0 ? `<span class="tree-badge">${subNotes.length}</span>` : ''}
+                  ${addDocBtn(cat.id, sub.id, sub.name)}
                   <button class="tree-action-btn btn-del" data-action="del-cat" data-id="${sub.id}" title="Eliminar subcategoría"><svg class="i"><use href="#i-x"/></svg></button>
                 </div>
                 ${subNotes.length > 0 ? `
@@ -1887,6 +1893,7 @@
             <span class="tree-icon">🎤</span>
             <span class="tree-label">Bethel Talks</span>
             ${bethelNotes.length > 0 ? `<span class="tree-badge">${bethelNotes.length}</span>` : ''}
+            ${addDocBtn('events', 'bethel_talks', 'Bethel Talks')}
           </div>
           ${bethelNotes.length > 0 ? `
             <div class="tree-subgroup" style="padding-left: 12px; margin-bottom: 4px;">
@@ -1904,6 +1911,7 @@
             <span class="tree-icon">🌐</span>
             <span class="tree-label">Annual Meeting</span>
             ${annualNotes.length > 0 ? `<span class="tree-badge">${annualNotes.length}</span>` : ''}
+            ${addDocBtn('events', 'annual_meeting', 'Annual Meeting')}
           </div>
           ${annualNotes.length > 0 ? `
             <div class="tree-subgroup" style="padding-left: 12px; margin-bottom: 4px;">
@@ -1921,6 +1929,7 @@
             <span class="tree-icon">🎓</span>
             <span class="tree-label">Gilead Meeting</span>
             ${gileadNotes.length > 0 ? `<span class="tree-badge">${gileadNotes.length}</span>` : ''}
+            ${addDocBtn('events', 'gilead_meeting', 'Gilead Meeting')}
           </div>
           ${gileadNotes.length > 0 ? `
             <div class="tree-subgroup" style="padding-left: 12px; margin-bottom: 4px;">
@@ -1938,6 +1947,7 @@
             <span class="tree-icon">📂</span>
             <span class="tree-label">Others</span>
             ${otherNotes.length > 0 ? `<span class="tree-badge">${otherNotes.length}</span>` : ''}
+            ${addDocBtn('events', 'others', 'Others')}
           </div>
           ${otherNotes.length > 0 ? `
             <div class="tree-subgroup" style="padding-left: 12px; margin-bottom: 4px;">
@@ -1959,6 +1969,7 @@
                 <span class="tree-icon">${sub.icon || '📂'}</span>
                 <span class="tree-label">${escapeHtml(sub.name)}</span>
                 ${subNotes.length > 0 ? `<span class="tree-badge">${subNotes.length}</span>` : ''}
+                ${addDocBtn('events', sub.id, sub.name)}
                 <button class="tree-action-btn btn-del" data-action="del-cat" data-id="${sub.id}" title="Eliminar subcategoría"><svg class="i"><use href="#i-x"/></svg></button>
               </div>
               ${subNotes.length > 0 ? `
@@ -1994,6 +2005,7 @@
                 <span class="tree-icon">${sub.icon || '📂'}</span>
                 <span class="tree-label">${escapeHtml(sub.name)}</span>
                 ${subNotes.length > 0 ? `<span class="tree-badge">${subNotes.length}</span>` : ''}
+                ${addDocBtn('spiritual_notes', sub.id, sub.name)}
                 <button class="tree-action-btn btn-del" data-action="del-cat" data-id="${sub.id}" title="Eliminar subcategoría"><svg class="i"><use href="#i-x"/></svg></button>
               </div>
               ${subNotes.length > 0 ? `
@@ -2043,6 +2055,15 @@
         e.stopPropagation();
         const parentId = btn.dataset.parent;
         openNewCategoryModal(parentId);
+      });
+    });
+
+    // Nuevo documento dentro de una subcarpeta concreta
+    dom.sidebarTree.querySelectorAll('[data-action="add-doc"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setFilter({ category: btn.dataset.cat, subCategory: btn.dataset.sub, month: '' });
+        openNewFolderDocPrompt();
       });
     });
 
@@ -2305,6 +2326,17 @@
 
         dom.notesListContainer.appendChild(item);
       });
+
+      // Siempre se puede añadir otro documento a la carpeta abierta
+      if (f.category !== 'all') {
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'notes-list-add-btn';
+        addBtn.innerHTML = '<svg class="i"><use href="#i-plus"/></svg><span></span>';
+        addBtn.querySelector('span').textContent = `Nuevo documento en ${filterTitle}`;
+        addBtn.addEventListener('click', openNewFolderDocPrompt);
+        dom.notesListContainer.appendChild(addBtn);
+      }
     }
   }
 
