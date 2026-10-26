@@ -18,9 +18,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Kalam:wght@400;700&family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=3.4.1">
-  <link rel="stylesheet" href="css/wol-assistant.css?v=3.4.1">
-  <link rel="stylesheet" href="css/refined.css?v=3.4.1">
+  <link rel="stylesheet" href="css/style.css?v=3.5.0">
+  <link rel="stylesheet" href="css/wol-assistant.css?v=3.5.0">
+  <link rel="stylesheet" href="css/refined.css?v=3.5.0">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f6f3ec" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#100f0d" media="(prefers-color-scheme: dark)">
@@ -80,6 +80,10 @@
       <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
       <symbol id="i-crown" viewBox="0 0 24 24"><path d="m2 5 3.5 12h13L22 5l-6 6-4-7-4 7z"/><path d="M5 21h14"/></symbol>
       <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+      <symbol id="i-highlighter" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></symbol>
+      <symbol id="i-eraser" viewBox="0 0 24 24"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L13 21"/><path d="M22 21H7M5 11l9 9"/></symbol>
+      <symbol id="i-sticky" viewBox="0 0 24 24"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9l7-7V5a2 2 0 0 0-2-2z"/><path d="M14 21v-5a2 2 0 0 1 2-2h5"/></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
       <symbol id="i-pilcrow" viewBox="0 0 24 24"><path d="M13 4v16M17 4v16M19 4H9.5a4.5 4.5 0 0 0 0 9H13"/></symbol>
       <symbol id="i-play" viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></symbol>
       <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01"/></symbol>
@@ -306,6 +310,12 @@
                   <button type="button" class="toolbar-btn toolbar-text" data-format="h1" title="Título">H1</button>
                   <button type="button" class="toolbar-btn toolbar-text" data-format="h2" title="Subtítulo">H2</button>
                   <button type="button" class="toolbar-btn" data-format="normal" title="Texto normal (quitar formato)"><svg class="i"><use href="#i-pilcrow"/></svg></button>
+                </div>
+                <div class="toolbar-group">
+                  <button type="button" class="toolbar-btn hl-btn hl-btn-yellow" data-format="hl-yellow" title="Resaltar en amarillo" aria-label="Resaltar en amarillo"><svg class="i"><use href="#i-highlighter"/></svg></button>
+                  <button type="button" class="toolbar-btn hl-btn hl-btn-red" data-format="hl-red" title="Resaltar en rojo" aria-label="Resaltar en rojo"><svg class="i"><use href="#i-highlighter"/></svg></button>
+                  <button type="button" class="toolbar-btn" data-format="hl-clear" title="Quitar resaltado" aria-label="Quitar resaltado"><svg class="i"><use href="#i-eraser"/></svg></button>
+                  <button type="button" class="toolbar-btn toolbar-btn-label" data-format="sticky" title="Añadir una nota al texto seleccionado"><svg class="i"><use href="#i-sticky"/></svg><span>Nota</span></button>
                 </div>
                 <div class="toolbar-group">
                   <button type="button" class="toolbar-btn" data-format="bullet" title="Lista"><svg class="i"><use href="#i-list"/></svg></button>
@@ -900,15 +910,51 @@
     </div>
   </div>
 
+  <!-- Nota adhesiva: añadir / editar -->
+  <div id="stickyNoteModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div id="stickyNoteModalTitle" class="modal-title">Añadir nota</div>
+        <button id="btnCloseStickyNoteModal" class="modal-close" type="button" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+      </div>
+      <form id="stickyNoteForm">
+        <div class="modal-body">
+          <blockquote id="stickyNoteQuote" class="sticky-note-quote"></blockquote>
+          <div class="form-group">
+            <label class="form-label" for="stickyNoteInput">Nota o referencia de tu investigación</label>
+            <textarea id="stickyNoteInput" class="form-input sticky-note-input" rows="6" placeholder="Ej.: Perspicacia, vol. 1, pág. 245 — o pega un enlace de wol.jw.org"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btnCancelStickyNote" class="btn-secondary">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar nota</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Nota adhesiva: vista al tocar el texto marcado -->
+  <div id="stickyNotePopover" class="sticky-popover" role="dialog" aria-label="Nota" hidden>
+    <div class="sticky-popover-head">
+      <span class="sticky-popover-label"><svg class="i"><use href="#i-sticky"/></svg>Nota</span>
+      <button type="button" class="sticky-popover-icon" data-sticky-action="close" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="sticky-popover-body"></div>
+    <div class="sticky-popover-actions">
+      <button type="button" class="sticky-popover-btn" data-sticky-action="edit"><svg class="i"><use href="#i-edit"/></svg>Editar</button>
+      <button type="button" class="sticky-popover-btn is-danger" data-sticky-action="remove"><svg class="i"><use href="#i-trash"/></svg>Quitar nota</button>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="js/engine.js?v=3.4.1"></script>
-  <script src="js/bible.js?v=3.4.1"></script>
-  <script src="js/offline.js?v=3.4.1"></script>
-  <script src="js/sound.js?v=3.4.1"></script>
-  <script src="js/rosco.js?v=3.4.1"></script>
-  <script src="js/game.js?v=3.4.1"></script>
-  <script src="js/notes.js?v=3.4.1"></script>
-  <script src="js/app-shell.js?v=3.4.1"></script>
-  <script src="js/wol-assistant.js?v=3.4.1"></script>
+  <script src="js/engine.js?v=3.5.0"></script>
+  <script src="js/bible.js?v=3.5.0"></script>
+  <script src="js/offline.js?v=3.5.0"></script>
+  <script src="js/sound.js?v=3.5.0"></script>
+  <script src="js/rosco.js?v=3.5.0"></script>
+  <script src="js/game.js?v=3.5.0"></script>
+  <script src="js/notes.js?v=3.5.0"></script>
+  <script src="js/app-shell.js?v=3.5.0"></script>
+  <script src="js/wol-assistant.js?v=3.5.0"></script>
 </body>
 </html>

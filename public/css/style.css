@@ -1513,3 +1513,84 @@ main { min-height: calc(100vh - var(--header-h)); }
 .note-properties .prop-folder .prop-input { flex: 0 1 auto; max-width: 100%; }
 #btnSidebarMainAction { min-width: 0; }
 #btnSidebarMainAction span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ==========================================================================
+   Resaltados (amarillo / rojo) y notas adhesivas en el editor
+   ========================================================================== */
+.notion-rich-editor mark { color: inherit; border-radius: 3px; padding: 0 1px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.notion-rich-editor mark.hl-yellow { background: rgba(255, 221, 51, 0.55); }
+.notion-rich-editor mark.hl-red { background: rgba(239, 68, 68, 0.32); }
+[data-theme="dark"] .notion-rich-editor mark.hl-yellow { background: rgba(250, 204, 21, 0.35); }
+[data-theme="dark"] .notion-rich-editor mark.hl-red { background: rgba(248, 113, 113, 0.35); }
+
+.hl-btn .i { stroke-width: 2.2; }
+.hl-btn-yellow { color: #c79a00; }
+.hl-btn-red { color: #dc2626; }
+[data-theme="dark"] .hl-btn-yellow { color: #facc15; }
+[data-theme="dark"] .hl-btn-red { color: #f87171; }
+
+.notion-rich-editor .sticky-anchor {
+  cursor: pointer;
+  background: rgba(59, 130, 246, 0.12);
+  border-bottom: 2px dotted #3b82f6;
+  border-radius: 2px;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.notion-rich-editor .sticky-anchor::after {
+  content: '';
+  display: inline-block;
+  width: 0.55em; height: 0.55em;
+  margin-left: 2px;
+  vertical-align: super;
+  background: #f59e0b;
+  border-radius: 1px 1px 1px 4px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+.notion-rich-editor .sticky-anchor:hover,
+.notion-rich-editor .sticky-anchor.is-open { background: rgba(59, 130, 246, 0.24); }
+[data-theme="dark"] .notion-rich-editor .sticky-anchor { background: rgba(96, 165, 250, 0.16); border-bottom-color: #60a5fa; }
+[data-theme="dark"] .notion-rich-editor .sticky-anchor.is-open { background: rgba(96, 165, 250, 0.3); }
+
+.sticky-popover {
+  position: fixed;
+  z-index: 1200;
+  max-height: 60vh;
+  display: flex; flex-direction: column;
+  background: #fff8c5;
+  color: #3b3415;
+  border: 1px solid #ecd97a;
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-ui);
+}
+.sticky-popover[hidden] { display: none; }
+.sticky-popover-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 8px 0 12px; }
+.sticky-popover-label { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #8a6d00; }
+.sticky-popover-label .i { width: 14px; height: 14px; }
+.sticky-popover-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; color: #8a6d00; }
+.sticky-popover-icon:hover { background: rgba(0, 0, 0, 0.06); }
+.sticky-popover-icon .i { width: 16px; height: 16px; }
+.sticky-popover-body { padding: 6px 14px 10px; font-size: 14.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; overflow-y: auto; }
+.sticky-popover-body a { color: #1d4ed8; text-decoration: underline; }
+.sticky-popover-actions { display: flex; gap: 6px; padding: 8px 10px 10px; border-top: 1px solid rgba(0, 0, 0, 0.08); }
+.sticky-popover-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 6px; font-size: 13px; font-weight: 500; color: #3b3415; background: rgba(0, 0, 0, 0.05); }
+.sticky-popover-btn:hover { background: rgba(0, 0, 0, 0.1); }
+.sticky-popover-btn .i { width: 15px; height: 15px; }
+.sticky-popover-btn.is-danger { color: #b42318; margin-left: auto; }
+[data-theme="dark"] .sticky-popover { background: #3a3417; color: #f4ecc5; border-color: #5c5222; }
+[data-theme="dark"] .sticky-popover-label,
+[data-theme="dark"] .sticky-popover-icon { color: #e8cf6a; }
+[data-theme="dark"] .sticky-popover-btn { color: #f4ecc5; background: rgba(255, 255, 255, 0.08); }
+[data-theme="dark"] .sticky-popover-btn.is-danger { color: #fca5a5; }
+[data-theme="dark"] .sticky-popover-body a { color: #93c5fd; }
+
+.sticky-note-quote {
+  margin: 0 0 14px; padding: 8px 12px;
+  border-left: 3px solid #3b82f6;
+  background: var(--surface-2);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
+  font-family: var(--font-read); font-size: 14px; color: var(--text-2);
+  max-height: 6.5em; overflow-y: auto;
+}
+.sticky-note-quote:empty { display: none; }
+.sticky-note-input { height: auto; min-height: 120px; padding: 10px 12px; line-height: 1.45; resize: vertical; font-family: var(--font-ui); }

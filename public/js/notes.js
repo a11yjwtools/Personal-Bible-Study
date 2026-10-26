@@ -616,13 +616,35 @@
     return out.length ? out.join('\n') : '<p><br></p>';
   }
 
+  // Notas adhesivas y resaltados (formato guardado en el Markdown):
+  //   [[texto]](nota:CONTENIDO_CODIFICADO)  → texto marcado con una nota
+  //   ==texto==                             → resaltado amarillo
+  //   ++texto++                             → resaltado rojo
+  const STICKY_MD_RE = /\[\[(.+?)\]\]\(nota:([A-Za-z0-9%._~-]*)\)/g;
+  const HL_YELLOW_MD_RE = /==([^\s=](?:.*?[^\s=])?)==/g;
+  const HL_RED_MD_RE = /\+\+([^\s+](?:.*?[^\s+])?)\+\+/g;
+
+  function encodeStickyNote(text) {
+    return encodeURIComponent(text || '').replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
+  }
+
+  function decodeStickyNote(enc) {
+    try { return decodeURIComponent(enc || ''); } catch (e) { return enc || ''; }
+  }
+
   function formatInlineMarkdown(str) {
     if (!str) return '';
     let res = escapeHtml(str);
+    // La nota sigue codificada hasta el final para que *, =, + o saltos de
+    // línea de su contenido no los toquen los demás reemplazos.
+    res = res.replace(STICKY_MD_RE, '<span class="sticky-anchor" data-note-enc="$2">$1</span>');
+    res = res.replace(HL_YELLOW_MD_RE, '<mark class="hl-yellow">$1</mark>');
+    res = res.replace(HL_RED_MD_RE, '<mark class="hl-red">$1</mark>');
     // **negrita**
     res = res.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     // *cursiva*
     res = res.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    res = res.replace(/data-note-enc="([^"]*)"/g, (m, enc) => `data-note="${escapeHtml(decodeStickyNote(enc))}"`);
     return res;
   }
 
@@ -702,6 +724,19 @@
 
       if (tag === 'hr') {
         return '\n---\n';
+      }
+
+      if ((tag === 'mark' && (node.classList.contains('hl-yellow') || node.classList.contains('hl-red'))) ||
+          (tag === 'span' && node.classList.contains('sticky-anchor'))) {
+        const text = Array.from(node.childNodes).map(processNode).join('');
+        // Los espacios de los bordes quedan fuera de las marcas
+        const m = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
+        if (!m[2]) return text;
+        let inner;
+        if (tag === 'span') inner = `[[${m[2]}]](nota:${encodeStickyNote(node.getAttribute('data-note'))})`;
+        else if (node.classList.contains('hl-red')) inner = `++${m[2]}++`;
+        else inner = `==${m[2]}==`;
+        return m[1] + inner + m[3];
       }
 
       if (tag === 'strong' || tag === 'b') {
@@ -2298,6 +2333,9 @@
         const details = parseDateDetails(note.date);
 
         const cleanSnippet = (note.content || '')
+          .replace(STICKY_MD_RE, '$1')
+          .replace(HL_YELLOW_MD_RE, '$1')
+          .replace(HL_RED_MD_RE, '$1')
           .replace(/[#*>_~`]/g, '')
           .replace(/(✍️|📅|📖|💡)\s*/gu, '')
           .replace(/(Fecha|Título):\s*/g, '')
@@ -2699,7 +2737,15 @@
     const note = notesState.notes.find(n => n.id === notesState.activeNoteId);
     if (!note) return;
 
-    const currentContent = dom.noteTextarea.value.trim();
+    // Las notas adhesivas se envían a la IA como (nota:1), (nota:2)… y se
+    // restauran al recibir el resultado, para que no se alteren.
+    const stickyNoteStash = [];
+    const currentContent = dom.noteTextarea.value.trim().replace(/\]\]\(nota:([A-Za-z0-9%._~-]*)\)/g, (m, enc) => {
+      stickyNoteStash.push(enc);
+      return `]](nota:${stickyNoteStash.length})`;
+    });
+    const restoreStickyNotes = (txt) => String(txt).replace(/\]\]\(nota:(\d+)\)/g, (m, n) =>
+      stickyNoteStash[n - 1] !== undefined ? `]](nota:${stickyNoteStash[n - 1]})` : m);
     if (!currentContent) {
       showToastNotification('Escribe algo antes de pedir la revisión.', 'warning');
       return;
@@ -2747,7 +2793,7 @@
 
       const data = await res.json();
       if (data.success && data.result) {
-        pendingAiResult = data.result;
+        pendingAiResult = restoreStickyNotes(data.result);
 
         const { diffHtml, changesCount } = computeWordDiff(currentContent, data.result);
 
@@ -3679,6 +3725,9 @@
 
     // Barra de herramientas integrada con botón para minimizar o ampliar
     initToolbarCollapse();
+
+    // Notas adhesivas y resaltados
+    initStickyNotes();
   }
 
   function initToolbarCollapse() {
@@ -3755,7 +3804,408 @@
     }
   }
 
+  // ==========================================
+  // RESALTADOS (AMARILLO / ROJO) Y NOTAS ADHESIVAS
+  // ==========================================
+
+  let lastSelRange = null;   // última selección con texto dentro del editor
+  let lastCaretRange = null; // última posición del cursor dentro del editor
+  let selLostAt = 0;         // momento en que se perdió esa selección
+  let stickyEditTarget = null;   // <span.sticky-anchor> que se está editando
+  let stickyPendingRange = null; // texto seleccionado al que se añadirá una nota
+  let stickyPendingTextarea = null; // {start, end} en modo Markdown
+
+  // Recordar la última selección dentro del editor: en el móvil, tocar un
+  // botón de la barra puede quitar la selección justo antes del clic.
+  function trackEditorSelection() {
+    try {
+      const sel = window.getSelection();
+      const inEditor = sel && sel.rangeCount > 0 && dom.noteRichEditor && dom.noteRichEditor.contains(sel.anchorNode);
+      if (inEditor && !sel.isCollapsed) {
+        lastSelRange = sel.getRangeAt(0).cloneRange();
+        selLostAt = 0;
+        return;
+      }
+      if (inEditor) lastCaretRange = sel.getRangeAt(0).cloneRange();
+      if (lastSelRange && !selLostAt) selLostAt = Date.now();
+    } catch (e) {}
+  }
+
+  function getEditorRange() {
+    const editor = dom.noteRichEditor;
+    const sel = window.getSelection();
+    const inEditor = sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode);
+    if (inEditor && !sel.isCollapsed) return sel.getRangeAt(0).cloneRange();
+    if (lastSelRange && selLostAt && Date.now() - selLostAt < 1500 && editor.contains(lastSelRange.startContainer)) {
+      return lastSelRange.cloneRange();
+    }
+    if (inEditor) return sel.getRangeAt(0).cloneRange();
+    if (lastCaretRange && editor.contains(lastCaretRange.startContainer)) return lastCaretRange.cloneRange();
+    return null;
+  }
+
+  function setEditorCaretAfter(node) {
+    try {
+      const sel = window.getSelection();
+      const r = document.createRange();
+      r.setStartAfter(node);
+      r.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(r);
+    } catch (e) {}
+    lastSelRange = null;
+    selLostAt = 0;
+  }
+
+  function closestInEditor(node, selector) {
+    let el = node && node.nodeType === Node.TEXT_NODE ? node.parentNode : node;
+    while (el && el !== dom.noteRichEditor) {
+      if (el.nodeType === Node.ELEMENT_NODE && el.matches(selector)) return el;
+      el = el.parentNode;
+    }
+    return null;
+  }
+
+  function unwrapElement(el) {
+    const parent = el.parentNode;
+    if (!parent) return;
+    while (el.firstChild) parent.insertBefore(el.firstChild, el);
+    parent.removeChild(el);
+  }
+
+  // Saca el nodo de texto de su elemento antecesor `ancestor`, conservando el
+  // formato de ancestor en el texto que queda antes y después.
+  function isolateFromAncestor(textNode, ancestor) {
+    const doc = textNode.ownerDocument;
+    const before = doc.createRange();
+    before.setStart(ancestor, 0);
+    before.setEndBefore(textNode);
+    const after = doc.createRange();
+    after.setStartAfter(textNode);
+    after.setEnd(ancestor, ancestor.childNodes.length);
+    const fragBefore = before.extractContents();
+    const fragAfter = after.extractContents();
+    if (fragBefore.textContent.length) {
+      const clone = ancestor.cloneNode(false);
+      clone.appendChild(fragBefore);
+      ancestor.parentNode.insertBefore(clone, ancestor);
+    }
+    if (fragAfter.textContent.length) {
+      const clone = ancestor.cloneNode(false);
+      clone.appendChild(fragAfter);
+      ancestor.parentNode.insertBefore(clone, ancestor.nextSibling);
+    }
+    unwrapElement(ancestor);
+  }
+
+  // Divide los nodos de texto en los bordes del rango y devuelve los nodos de
+  // texto que quedan completamente dentro de él.
+  function textNodesInRange(range) {
+    if (range.startContainer.nodeType === Node.TEXT_NODE && range.startOffset > 0) {
+      const tail = range.startContainer.splitText(range.startOffset);
+      if (range.endContainer === range.startContainer) range.setEnd(tail, range.endOffset - range.startOffset);
+      range.setStart(tail, 0);
+    }
+    if (range.endContainer.nodeType === Node.TEXT_NODE && range.endOffset < range.endContainer.length) {
+      range.endContainer.splitText(range.endOffset);
+    }
+    const nodes = [];
+    const walker = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_TEXT);
+    if (range.commonAncestorContainer.nodeType === Node.TEXT_NODE) {
+      nodes.push(range.commonAncestorContainer);
+    } else {
+      let n;
+      while ((n = walker.nextNode())) {
+        if (range.intersectsNode(n) && n.length) nodes.push(n);
+      }
+    }
+    // Ignorar los saltos de línea entre bloques y el texto de los títulos de día
+    return nodes.filter(n => {
+      const parent = n.parentNode;
+      if (!parent || parent === dom.noteRichEditor) return false;
+      const ptag = parent.tagName.toLowerCase();
+      if ((ptag === 'ul' || ptag === 'ol') && !n.textContent.trim()) return false;
+      return !closestInEditor(n, '.paper-day-banner');
+    });
+  }
+
+  function mergeAdjacentMarks() {
+    dom.noteRichEditor.querySelectorAll('mark').forEach(m => {
+      let next = m.nextSibling;
+      while (next && next.nodeType === Node.ELEMENT_NODE && next.tagName === 'MARK' && next.className === m.className) {
+        while (next.firstChild) m.appendChild(next.firstChild);
+        const gone = next;
+        next = next.nextSibling;
+        gone.remove();
+      }
+      m.normalize();
+    });
+  }
+
+  function syncEditorAfterAnnotation() {
+    if (dom.noteTextarea) {
+      dom.noteTextarea.value = richHtmlToMarkdown(dom.noteRichEditor.innerHTML);
+    }
+    scheduleAutoSave();
+  }
+
+  function applyHighlight(fmt) {
+    const range = getEditorRange();
+    if (!range) {
+      showToastNotification('Selecciona primero el texto que quieres resaltar.', 'warning');
+      return;
+    }
+
+    if (range.collapsed) {
+      // Sin selección: «Quitar resaltado» quita el resaltado donde está el cursor
+      const mark = closestInEditor(range.startContainer, 'mark');
+      if (fmt === 'hl-clear' && mark) {
+        unwrapElement(mark);
+        dom.noteRichEditor.normalize();
+        syncEditorAfterAnnotation();
+      } else {
+        showToastNotification('Selecciona primero el texto que quieres resaltar.', 'warning');
+      }
+      return;
+    }
+
+    const nodes = textNodesInRange(range);
+    if (!nodes.length) return;
+    nodes.forEach(t => {
+      const old = closestInEditor(t, 'mark');
+      if (old) isolateFromAncestor(t, old);
+      if (fmt !== 'hl-clear') {
+        const mark = document.createElement('mark');
+        mark.className = fmt;
+        t.parentNode.insertBefore(mark, t);
+        mark.appendChild(t);
+      }
+    });
+    mergeAdjacentMarks();
+
+    // Dejar el cursor al final de lo resaltado
+    const last = nodes[nodes.length - 1];
+    if (last.parentNode) setEditorCaretAfter(last.parentNode.tagName === 'MARK' ? last.parentNode : last);
+
+    syncEditorAfterAnnotation();
+  }
+
+  function blockOf(node) {
+    let el = node.nodeType === Node.TEXT_NODE ? node.parentNode : node;
+    while (el && el.parentNode !== dom.noteRichEditor && el !== dom.noteRichEditor) el = el.parentNode;
+    return el;
+  }
+
+  function openStickyNoteForSelection() {
+    const range = getEditorRange();
+    if (!range) {
+      showToastNotification('Selecciona el texto al que quieres añadir una nota.', 'warning');
+      return;
+    }
+    // Cursor dentro de un texto que ya tiene nota → editarla
+    const existing = closestInEditor(range.startContainer, '.sticky-anchor') || closestInEditor(range.endContainer, '.sticky-anchor');
+    if (existing) {
+      openStickyNoteModal({ target: existing });
+      return;
+    }
+    if (range.collapsed || !range.toString().trim()) {
+      showToastNotification('Selecciona el texto al que quieres añadir una nota.', 'warning');
+      return;
+    }
+    if (blockOf(range.startContainer) !== blockOf(range.endContainer)) {
+      showToastNotification('Selecciona texto de un solo párrafo para añadirle una nota.', 'warning');
+      return;
+    }
+    const frag = range.cloneContents();
+    if (frag.querySelector && frag.querySelector('.sticky-anchor')) {
+      showToastNotification('Parte de ese texto ya tiene una nota. Tócala para verla o editarla.', 'warning');
+      return;
+    }
+    openStickyNoteModal({ range });
+  }
+
+  function openStickyNoteModal({ target = null, range = null, textareaSel = null, quote = '' } = {}) {
+    stickyEditTarget = target;
+    stickyPendingRange = range;
+    stickyPendingTextarea = textareaSel;
+    hideStickyPopover();
+    const modal = document.getElementById('stickyNoteModal');
+    const input = document.getElementById('stickyNoteInput');
+    const quoteEl = document.getElementById('stickyNoteQuote');
+    const title = document.getElementById('stickyNoteModalTitle');
+    if (!modal || !input) return;
+    const selectedText = target ? target.textContent : (range ? range.toString() : quote);
+    if (quoteEl) quoteEl.textContent = selectedText.trim();
+    if (title) title.textContent = target ? 'Editar nota' : 'Añadir nota';
+    input.value = target ? (target.getAttribute('data-note') || '') : '';
+    modal.classList.add('active');
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function closeStickyNoteModal() {
+    const modal = document.getElementById('stickyNoteModal');
+    if (modal) modal.classList.remove('active');
+    stickyEditTarget = null;
+    stickyPendingRange = null;
+    stickyPendingTextarea = null;
+  }
+
+  function saveStickyNoteFromModal(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('stickyNoteInput');
+    const text = (input ? input.value : '').trim();
+    if (!text) {
+      showToastNotification('Escribe el contenido de la nota.', 'warning');
+      return;
+    }
+
+    if (stickyPendingTextarea && dom.noteTextarea) {
+      const { start, end } = stickyPendingTextarea;
+      const ta = dom.noteTextarea;
+      const sel = ta.value.substring(start, end);
+      ta.setRangeText(`[[${sel}]](nota:${encodeStickyNote(text)})`, start, end, 'end');
+      closeStickyNoteModal();
+      scheduleAutoSave();
+      return;
+    }
+
+    if (stickyEditTarget && dom.noteRichEditor.contains(stickyEditTarget)) {
+      stickyEditTarget.setAttribute('data-note', text);
+    } else if (stickyPendingRange) {
+      const range = stickyPendingRange;
+      const span = document.createElement('span');
+      span.className = 'sticky-anchor';
+      span.setAttribute('data-note', text);
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+      // Quitar contenedores vacíos que extractContents pueda dejar
+      [span.previousSibling, span.nextSibling].forEach(n => {
+        if (n && n.nodeType === Node.ELEMENT_NODE && !n.textContent.length && n.tagName !== 'BR') n.remove();
+      });
+      setEditorCaretAfter(span);
+    } else {
+      closeStickyNoteModal();
+      return;
+    }
+    closeStickyNoteModal();
+    syncEditorAfterAnnotation();
+    if (window.soundEngine && typeof window.soundEngine.playSuccess === 'function') {
+      window.soundEngine.playSuccess();
+    }
+  }
+
+  function linkifyNoteText(text) {
+    return escapeHtml(text).replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)\]'"])/g,
+      '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  }
+
+  function showStickyPopover(anchor) {
+    const pop = document.getElementById('stickyNotePopover');
+    if (!pop) return;
+    pop._anchor = anchor;
+    const body = pop.querySelector('.sticky-popover-body');
+    if (body) body.innerHTML = linkifyNoteText(anchor.getAttribute('data-note') || '');
+    dom.noteRichEditor.querySelectorAll('.sticky-anchor.is-open').forEach(a => a.classList.remove('is-open'));
+    anchor.classList.add('is-open');
+    pop.hidden = false;
+
+    // Colocar debajo (o encima si no cabe) del texto marcado
+    const rect = anchor.getBoundingClientRect();
+    const margin = 8;
+    const width = Math.min(340, window.innerWidth - margin * 2);
+    pop.style.width = width + 'px';
+    let left = rect.left + rect.width / 2 - width / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+    pop.style.left = left + 'px';
+    const h = pop.offsetHeight;
+    let top = rect.bottom + margin;
+    if (top + h > window.innerHeight - margin && rect.top - h - margin > margin) top = rect.top - h - margin;
+    pop.style.top = Math.max(margin, top) + 'px';
+  }
+
+  function hideStickyPopover() {
+    const pop = document.getElementById('stickyNotePopover');
+    if (!pop || pop.hidden) return;
+    pop.hidden = true;
+    if (pop._anchor) pop._anchor.classList.remove('is-open');
+    pop._anchor = null;
+  }
+
+  function initStickyNotes() {
+    document.addEventListener('selectionchange', trackEditorSelection);
+
+    if (dom.noteRichEditor) {
+      dom.noteRichEditor.addEventListener('click', (e) => {
+        const anchor = e.target.closest && e.target.closest('.sticky-anchor');
+        const sel = window.getSelection();
+        if (anchor && dom.noteRichEditor.contains(anchor) && (!sel || sel.isCollapsed)) {
+          showStickyPopover(anchor);
+        } else {
+          hideStickyPopover();
+        }
+      });
+      dom.noteRichEditor.addEventListener('input', hideStickyPopover);
+    }
+
+    const pop = document.getElementById('stickyNotePopover');
+    if (pop) {
+      pop.addEventListener('mousedown', (e) => { if (!e.target.closest('a')) e.preventDefault(); });
+      const btnEdit = pop.querySelector('[data-sticky-action="edit"]');
+      const btnRemove = pop.querySelector('[data-sticky-action="remove"]');
+      const btnClose = pop.querySelector('[data-sticky-action="close"]');
+      if (btnEdit) btnEdit.addEventListener('click', () => {
+        if (pop._anchor) openStickyNoteModal({ target: pop._anchor });
+      });
+      if (btnRemove) btnRemove.addEventListener('click', () => {
+        const anchor = pop._anchor;
+        hideStickyPopover();
+        if (anchor && dom.noteRichEditor.contains(anchor)) {
+          unwrapElement(anchor);
+          dom.noteRichEditor.normalize();
+          syncEditorAfterAnnotation();
+          showToastNotification('Nota quitada.', 'info', 2500);
+        }
+      });
+      if (btnClose) btnClose.addEventListener('click', hideStickyPopover);
+    }
+
+    document.addEventListener('mousedown', (e) => {
+      const p = document.getElementById('stickyNotePopover');
+      if (p && !p.hidden && !p.contains(e.target) && !(e.target.closest && e.target.closest('.sticky-anchor'))) {
+        hideStickyPopover();
+      }
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideStickyPopover(); });
+    // Mantener la nota junto a su texto al desplazar o al abrir el teclado
+    const reposition = () => {
+      const p = document.getElementById('stickyNotePopover');
+      if (!p || p.hidden || !p._anchor) return;
+      if (!document.body.contains(p._anchor)) { hideStickyPopover(); return; }
+      showStickyPopover(p._anchor);
+    };
+    window.addEventListener('resize', reposition);
+    document.addEventListener('scroll', reposition, true);
+
+    const form = document.getElementById('stickyNoteForm');
+    if (form) form.addEventListener('submit', saveStickyNoteFromModal);
+    ['btnCloseStickyNoteModal', 'btnCancelStickyNote'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.addEventListener('click', closeStickyNoteModal);
+    });
+    const input = document.getElementById('stickyNoteInput');
+    if (input) input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) saveStickyNoteFromModal(e);
+    });
+  }
+
   function applyTextFormat(fmt) {
+    const isAnnotation = fmt === 'hl-yellow' || fmt === 'hl-red' || fmt === 'hl-clear' || fmt === 'sticky';
+    if (isAnnotation && dom.noteRichEditor && dom.noteRichEditor.offsetParent !== null) {
+      if (fmt === 'sticky') openStickyNoteForSelection();
+      else applyHighlight(fmt);
+      return;
+    }
+
     if (dom.noteRichEditor && dom.noteRichEditor.offsetParent !== null) {
       dom.noteRichEditor.focus();
       const sel = window.getSelection();
@@ -3860,6 +4310,17 @@
         .replace(/\*(.*?)\*/g, '$1')
         .replace(/^[📖💡\s]+/gm, '')
         .replace(/^Punto Clave:\s*/gm, '');
+    }
+    else if (fmt === 'hl-yellow') replacement = `==${sel}==`;
+    else if (fmt === 'hl-red') replacement = `++${sel}++`;
+    else if (fmt === 'hl-clear') replacement = sel.replace(HL_YELLOW_MD_RE, '$1').replace(HL_RED_MD_RE, '$1');
+    else if (fmt === 'sticky') {
+      if (start === end) {
+        showToastNotification('Selecciona el texto al que quieres añadir una nota.', 'warning');
+        return;
+      }
+      openStickyNoteModal({ textareaSel: { start, end }, quote: sel });
+      return;
     }
     else if (fmt === 'bold') replacement = `**${sel}**`;
     else if (fmt === 'italic') replacement = `*${sel}*`;

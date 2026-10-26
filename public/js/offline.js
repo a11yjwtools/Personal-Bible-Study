@@ -27,6 +27,19 @@
 
   const nativeFetch = window.fetch.bind(window);
 
+  // Texto legible de una nota: quita las marcas de resaltado (==…==, ++…++)
+  // y muestra las notas adhesivas [[texto]](nota:…) como «texto (nota)».
+  function plainContent(content) {
+    return String(content || '')
+      .replace(/\[\[(.+?)\]\]\(nota:([A-Za-z0-9%._~-]*)\)/g, (m, text, enc) => {
+        let note = enc;
+        try { note = decodeURIComponent(enc); } catch (e) {}
+        return `${text} (${note.replace(/\s+/g, ' ').trim()})`;
+      })
+      .replace(/==([^\s=](?:.*?[^\s=])?)==/g, '$1')
+      .replace(/\+\+([^\s+](?:.*?[^\s+])?)\+\+/g, '$1');
+  }
+
   function defaultCategories() {
     return [
       { id: 'daily_text', name: 'Daily Text Comments', icon: '🌅', isSystem: true, subCategories: [] },
@@ -361,7 +374,7 @@
       const q = String(filter.search).toLowerCase().trim();
       notes = notes.filter(n =>
         (n.title && n.title.toLowerCase().includes(q)) ||
-        (n.content && n.content.toLowerCase().includes(q)) ||
+        (n.content && plainContent(n.content).toLowerCase().includes(q)) ||
         (n.tags && n.tags.some(t => String(t).toLowerCase().includes(q))) ||
         (n.date && n.date.includes(q)));
     }
@@ -501,18 +514,19 @@
     const notes = [];
     for (const n of S.notes.values()) {
       const titleMatch = n.title && n.title.toLowerCase().includes(term);
-      const contentMatch = n.content && n.content.toLowerCase().includes(term);
+      const plain = plainContent(n.content);
+      const contentMatch = plain && plain.toLowerCase().includes(term);
       const tagMatch = n.tags && n.tags.some(t => String(t).toLowerCase().includes(term));
       const dateMatch = n.date && n.date.includes(term);
       if (!(titleMatch || contentMatch || tagMatch || dateMatch)) continue;
       let snippet;
       if (contentMatch) {
-        const pos = n.content.toLowerCase().indexOf(term);
+        const pos = plain.toLowerCase().indexOf(term);
         const start = Math.max(0, pos - 50);
-        const end = Math.min(n.content.length, pos + term.length + 50);
-        snippet = (start > 0 ? '...' : '') + n.content.substring(start, end).replace(/\n/g, ' ') + (end < n.content.length ? '...' : '');
+        const end = Math.min(plain.length, pos + term.length + 50);
+        snippet = (start > 0 ? '...' : '') + plain.substring(start, end).replace(/\n/g, ' ') + (end < plain.length ? '...' : '');
       } else {
-        snippet = (n.content || '').substring(0, 100).replace(/\n/g, ' ') + '...';
+        snippet = plain.substring(0, 100).replace(/\n/g, ' ') + '...';
       }
       snippet = snippet.replace(/[#>*_`]+/g, '').replace(/[📅✍️📖💡]/gu, '').replace(/\s{2,}/g, ' ').trim();
       notes.push({ ...withCounts(n), matchSnippet: snippet, matchedIn: titleMatch ? 'title' : contentMatch ? 'content' : tagMatch ? 'tag' : 'date' });
@@ -595,7 +609,7 @@
   async function generateForNote(noteId, count) {
     const note = S.notes.get(noteId);
     if (!note) throw new Error('Nota no encontrada.');
-    const text = (note.content || '').trim();
+    const text = plainContent(note.content).trim();
     if (text.length < 25) throw new Error('El contenido de la nota es demasiado breve para extraer preguntas. Escribe unos párrafos más.');
     const qs = await engine().ai.generateQuestionsFromText(text, note.title, count);
     return addQuestionsToTopic(noteId, qs);
@@ -605,7 +619,7 @@
     return sortByDateDesc(Array.from(S.notes.values()).map(n => ({
       id: n.id, title: n.title, isNote: true, noteId: n.id,
       category: n.category, subCategory: n.subCategory || '', date: n.date,
-      icon: n.icon || '📝', rawTextSnippet: (n.content || '').slice(0, 500),
+      icon: n.icon || '📝', rawTextSnippet: plainContent(n.content).slice(0, 500),
       createdAt: n.createdAt, updatedAt: n.updatedAt, questionsCount: questionCount(n.id)
     })));
   }
@@ -780,7 +794,7 @@
       const ids = Array.isArray(data.topicIds) ? data.topicIds : [];
       let notes = ids.map(id => S.notes.get(id)).filter(Boolean);
       if (!notes.length || !notes.some(n => (n.content || '').trim())) notes = Array.from(S.notes.values());
-      const text = notes.map(n => n.content || '').join('\n\n');
+      const text = notes.map(n => plainContent(n.content)).join('\n\n');
       const rosco = await engine().ai.generateRoscoQuestions(text, notes.map(n => n.title));
       return ok({ rosco, timeLimitSeconds: 300 });
     }
