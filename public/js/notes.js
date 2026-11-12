@@ -511,6 +511,43 @@
   // CONVERTIDORES VISUALES MARKDOWN ↔ HTML ENRIQUECIDO
   // ==========================================
 
+  // Imágenes: se guardan en el Markdown como «![pie de foto](img:images/ruta.jpg)»
+  // y el archivo vive en tu repositorio privado de apuntes.
+  const IMAGE_MD_RE = /^!\[([^\]]*)\]\((img:images\/[A-Za-z0-9._\/-]+)\)$/;
+
+  function imageFigureHtml(alt, src) {
+    const a = escapeHtml(alt || '');
+    return `<figure class="note-image" contenteditable="false" data-src="${escapeHtml(src)}" data-alt="${a}">` +
+      `<img alt="${a || 'Imagen'}" loading="lazy">` +
+      (alt ? `<figcaption>${a}</figcaption>` : '') + '</figure>';
+  }
+
+  // Carga las imágenes de un contenedor (desde la caché o desde GitHub)
+  function hydrateNoteImages(root) {
+    if (!root) return;
+    root.querySelectorAll('figure.note-image').forEach(fig => {
+      const img = fig.querySelector('img');
+      if (!img || img.getAttribute('src')) return;
+      fig.classList.add('is-loading');
+      const load = window.EP && window.EP.loadImage;
+      if (!load) { fig.classList.remove('is-loading'); fig.classList.add('is-missing'); return; }
+      load(fig.dataset.src).then(url => {
+        img.src = url;
+        fig.classList.remove('is-loading');
+      }).catch(() => {
+        fig.classList.remove('is-loading');
+        fig.classList.add('is-missing');
+        fig.setAttribute('title', 'La imagen no está disponible ahora (¿sin conexión?)');
+      });
+    });
+  }
+
+  function setRichEditorContent(md) {
+    if (!dom.noteRichEditor) return;
+    dom.noteRichEditor.innerHTML = markdownToRichHtml(md);
+    hydrateNoteImages(dom.noteRichEditor);
+  }
+
   function markdownToRichHtml(md) {
     if (!md) return '<p><br></p>';
 
@@ -527,6 +564,14 @@
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+
+      // Imagen guardada en el repositorio de apuntes: ![pie](img:images/…)
+      const imgMatch = line.trim().match(IMAGE_MD_RE);
+      if (imgMatch) {
+        closeList();
+        out.push(imageFigureHtml(imgMatch[1], imgMatch[2]));
+        continue;
+      }
 
       // Línea horizontal
       if (line.trim() === '---' || line.trim() === '***') {
@@ -663,6 +708,14 @@
       }
 
       const tag = node.tagName.toLowerCase();
+
+      // Imágenes
+      if (node.classList.contains('note-image')) {
+        const src = node.getAttribute('data-src') || '';
+        if (!src) return '';
+        const alt = (node.getAttribute('data-alt') || '').replace(/[\[\]\n]/g, ' ').trim();
+        return `\n![${alt}](${src})\n`;
+      }
 
       // Banners de día
       if (node.classList.contains('paper-day-banner')) {
@@ -1611,9 +1664,7 @@
       if (dom.noteTagsInput) dom.noteTagsInput.value = (note.tags || []).join(', ');
 
       const rawContent = note.content || '';
-      if (dom.noteRichEditor) {
-        dom.noteRichEditor.innerHTML = markdownToRichHtml(rawContent);
-      }
+      setRichEditorContent(rawContent);
       if (dom.noteTextarea) {
         dom.noteTextarea.value = rawContent;
         dom.noteTextarea.scrollTop = 0;
@@ -2855,9 +2906,7 @@
 
   function applyAiChanges() {
     if (!pendingAiResult) return;
-    if (dom.noteRichEditor) {
-      dom.noteRichEditor.innerHTML = markdownToRichHtml(pendingAiResult);
-    }
+    setRichEditorContent(pendingAiResult);
     if (dom.noteTextarea) {
       dom.noteTextarea.value = pendingAiResult;
     }

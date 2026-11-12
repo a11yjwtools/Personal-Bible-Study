@@ -31,6 +31,7 @@
   // y muestra las notas adhesivas [[texto]](nota:…) como «texto (nota)».
   function plainContent(content) {
     return String(content || '')
+      .replace(/^!\[([^\]]*)\]\(img:[^)]*\)\s*$/gm, (m, alt) => alt ? `[Imagen: ${alt}]` : '')
       .replace(/\[\[(.+?)\]\]\(nota:([A-Za-z0-9%._~-]*)\)/g, (m, text, enc) => {
         let note = enc;
         try { note = decodeURIComponent(enc); } catch (e) {}
@@ -1226,6 +1227,46 @@ y puedes recuperar cualquier versión anterior desde GitHub.
   }
 
   // ------------------------------------------------------------------
+  // Imágenes de los apuntes (archivos images/… del repositorio privado)
+  // Se guardan en la caché del navegador para verlas también sin conexión.
+  // ------------------------------------------------------------------
+  const IMG_CACHE = 'ep-images-v1';
+  const imageUrls = new Map();
+
+  function loadImage(ref) {
+    const path = String(ref || '').replace(/^img:/, '');
+    if (!/^images\/[A-Za-z0-9._\/-]+$/.test(path) || path.includes('..')) return Promise.reject(new Error('Ruta de imagen no válida'));
+    if (imageUrls.has(path)) return imageUrls.get(path);
+    const ext = (path.split('.').pop() || '').toLowerCase();
+    const type = { png: 'image/png', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml' }[ext] || 'image/jpeg';
+    const key = new URL('__ep_images__/' + path, location.href).href;
+    const job = (async () => {
+      let blob = null;
+      try {
+        const cache = await caches.open(IMG_CACHE);
+        const hit = await cache.match(key);
+        if (hit) blob = await hit.blob();
+      } catch (e) { /* sin caché */ }
+      if (!blob) {
+        const cfg = getGithubConfig();
+        if (!cfg) throw new Error('Sin conexión con GitHub');
+        const res = await gh(`${repoBase()}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(cfg.branch || 'main')}`,
+          { accept: 'application/vnd.github.raw+json', timeout: 60000 });
+        if (!res.ok) throw new Error(`Imagen no encontrada (${res.status})`);
+        blob = await res.blob();
+        try {
+          const cache = await caches.open(IMG_CACHE);
+          await cache.put(key, new Response(blob, { headers: { 'Content-Type': type } }));
+        } catch (e) { /* sin caché */ }
+      }
+      return URL.createObjectURL(new Blob([blob], { type }));
+    })();
+    imageUrls.set(path, job);
+    job.catch(() => imageUrls.delete(path));
+    return job;
+  }
+
+  // ------------------------------------------------------------------
   // Importar / exportar
   // ------------------------------------------------------------------
   function buildExport() {
@@ -1712,6 +1753,7 @@ y puedes recuperar cualquier versión anterior desde GitHub.
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     },
     importFile,
+    loadImage,
     _importDatabase: importDatabase
   };
 })();
