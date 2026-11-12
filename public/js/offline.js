@@ -1250,12 +1250,78 @@ y puedes recuperar cualquier versión anterior desde GitHub.
   };
 
   /** Importa una base de datos del formato antiguo (data/database.json) o una copia exportada. */
+  /**
+   * Une las carpetas de un archivo importado con las que ya hay, sin borrar
+   * ninguna. Una carpeta con el mismo id o el mismo nombre (en cualquier nivel)
+   * se reutiliza; las demás se añaden. Devuelve también cómo reubicar las notas
+   * cuyas carpetas se reutilizaron con otro id.
+   */
+  function mergeCategories(existing, incoming) {
+    const result = clone(existing || []);
+    const remap = {}; // id importado -> { category, subCategory }
+    const findAnywhere = (pred) => {
+      for (const c of result) {
+        if (pred(c)) return { cat: c, parent: null };
+        for (const s of (c.subCategories || [])) if (pred(s)) return { cat: s, parent: c };
+      }
+      return null;
+    };
+    const byId = (id) => (x) => x.id === id;
+    const byName = (name) => (x) => norm(x.name) && norm(x.name) === norm(name);
+    const addSub = (parent, s) => {
+      parent.subCategories = parent.subCategories || [];
+      const local = parent.subCategories.find(byName(s.name));
+      const hit = findAnywhere(byId(s.id)) || (local && { cat: local, parent }) || findAnywhere(byName(s.name));
+      if (hit) {
+        const owner = hit.parent || null;
+        if (hit.cat.id !== s.id || (owner ? owner.id : null) !== s.parentId) {
+          remap[s.id] = owner ? { category: owner.id, subCategory: hit.cat.id } : { category: hit.cat.id, subCategory: '' };
+        }
+        return;
+      }
+      const { subCategories, ...rest } = s;
+      parent.subCategories.push({ ...rest, isSystem: !!s.isSystem, parentId: parent.id });
+      if (parent.id !== s.parentId) remap[s.id] = { category: parent.id, subCategory: s.id };
+    };
+    for (const c of (incoming || [])) {
+      if (!c || !c.id) continue;
+      const top = result.find(byId(c.id)) || result.find(byName(c.name));
+      if (top) {
+        if (top.id !== c.id) remap[c.id] = { category: top.id, subCategory: '' };
+        (c.subCategories || []).forEach(s => addSub(top, { ...s, parentId: c.id }));
+        continue;
+      }
+      const asSub = findAnywhere(byName(c.name));
+      if (asSub && asSub.parent) {
+        remap[c.id] = { category: asSub.parent.id, subCategory: asSub.cat.id };
+        (c.subCategories || []).forEach(s => addSub(asSub.parent, { ...s, parentId: c.id }));
+        continue;
+      }
+      result.push({ ...c, subCategories: [] });
+      (c.subCategories || []).forEach(s => addSub(result[result.length - 1], { ...s, parentId: c.id }));
+    }
+    return { categories: result, remap };
+  }
+
+  function relocateNote(n, remap) {
+    const bySub = n.subCategory && remap[n.subCategory];
+    if (bySub) return { ...n, category: bySub.category, subCategory: bySub.subCategory };
+    const byCat = remap[n.category];
+    if (byCat) return { ...n, category: byCat.category, subCategory: byCat.subCategory || n.subCategory || '' };
+    return n;
+  }
+
+  /** Importa una base de datos del formato antiguo (data/database.json) o una copia exportada. */
   function importDatabase(db, { overwrite = false } = {}) {
     if (!db || !Array.isArray(db.notes)) throw new Error('El archivo no parece una copia de Estudio Personal.');
+    // Las carpetas se unen con las existentes (nunca se borra ninguna)
+    const merged = Array.isArray(db.categories) && db.categories.length
+      ? mergeCategories(S.meta.categories, db.categories)
+      : { categories: S.meta.categories, remap: {} };
     let added = 0;
     for (const raw of db.notes) {
       if (!raw || !raw.id) continue;
-      const n = cleanNote(raw);
+      const n = relocateNote(cleanNote(raw), merged.remap);
       const cur = S.notes.get(n.id);
       if (!cur || overwrite) {
         saveNote(n);
@@ -1300,7 +1366,7 @@ y puedes recuperar cualquier versión anterior desde GitHub.
 
     const meta = normalizeMeta({
       ...S.meta,
-      categories: Array.isArray(db.categories) && db.categories.length ? db.categories : S.meta.categories,
+      categories: merged.categories,
       years: Array.from(new Set([...(S.meta.years || []), ...(((db.config || {}).availableYears) || [])])),
       settings: {
         ...S.meta.settings,
