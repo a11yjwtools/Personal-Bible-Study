@@ -417,3 +417,19 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .btn-primary:hover:not(:disabled), .topic-card:hover { transform: none; }
 }
+
+/* ---------- Atajos de teclado (Ajustes) ---------- */
+.sc-group { margin: 14px 0 6px; }
+.sc-group-title { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--text-2, inherit); }
+.sc-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto auto; gap: 8px; align-items: center; margin-bottom: 6px; }
+.sc-label { font-size: 13px; }
+.sc-input { text-align: center; font-weight: 600; cursor: pointer; min-width: 0; }
+.sc-input:focus { outline: 2px solid var(--accent, #4f6bed); outline-offset: 1px; }
+.sc-custom { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.sc-custom .form-input { margin-bottom: 8px; }
+.sc-reset { margin-top: 14px; }
+.sc-status { min-height: 1.4em; margin-top: 8px; font-size: 13px; }
+@media (max-width: 560px) {
+  .sc-row { grid-template-columns: 1fr auto; }
+  .sc-label { grid-column: 1 / -1; }
+}
