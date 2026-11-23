@@ -430,8 +430,10 @@
     root.textContent = '';
 
     root.appendChild(mk('p', { class: 'form-help', id: 'scHelp' },
-      'Haz clic en un campo y pulsa la combinación que quieras (Ctrl, Alt o Meta + una letra, número o tecla F). ' +
-      'Retroceso o Supr quita el atajo. Los cambios se guardan al instante, solo en este dispositivo. ' +
+      'Para cambiar un atajo, haz clic en su campo y haz una de estas dos cosas: ' +
+      '(1) pulsa la combinación nueva (Ctrl, Alt o Meta junto con una letra, número o tecla F), o ' +
+      '(2) escríbela con texto, por ejemplo Alt+Shift+G, y pulsa Intro. ' +
+      'Para quitarlo, usa el botón «Quitar». Se guarda al instante, solo en este dispositivo. ' +
       'Con el cursor dentro de una cita como «Mateo 4:5» no hace falta seleccionarla.'));
 
     const actions = allActions();
@@ -471,9 +473,11 @@
   function buildRow(a) {
     const row = mk('div', { class: 'sc-row' });
     row.appendChild(mk('label', { class: 'sc-label', for: 'sc-in-' + a.id }, a.label));
-    const input = mk('input', { type: 'text', class: 'form-input sc-input', id: 'sc-in-' + a.id, readonly: '', 'aria-describedby': 'scHelp', autocomplete: 'off' });
+    const input = mk('input', { type: 'text', class: 'form-input sc-input', id: 'sc-in-' + a.id, 'aria-describedby': 'scHelp', autocomplete: 'off', spellcheck: 'false' });
     input.value = comboOf(a) || 'Sin atajo';
+    input.dataset.shown = input.value;
     input.addEventListener('keydown', (e) => onCaptureKey(e, a));
+    input.addEventListener('focus', () => { try { input.select(); } catch (e) {} });
     row.appendChild(input);
 
     const rm = mk('button', { type: 'button', class: 'btn-ghost btn-sm', 'aria-label': `Quitar el atajo de ${a.label}` }, 'Quitar');
@@ -496,30 +500,69 @@
     return row;
   }
 
-  function onCaptureKey(e, action) {
-    if (['Tab', 'Shift', 'Control', 'Alt', 'Meta', 'Escape'].includes(e.key)) return;
-    if (e.key === 'Enter') { e.preventDefault(); return; } // no enviar el formulario de Ajustes
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      e.preventDefault();
+  /** Convierte texto escrito («ctrl + alt + g», «Mayús+Alt+V»…) en «Ctrl+Alt+G», o null. */
+  function parseCombo(text) {
+    const t = String(text || '').trim();
+    if (!t) return '';
+    const MODS = { ctrl: 'Ctrl', control: 'Ctrl', ctl: 'Ctrl', alt: 'Alt', opcion: 'Alt', option: 'Alt', shift: 'Shift', mayus: 'Shift', mayusc: 'Shift', mayusculas: 'Shift', meta: 'Meta', win: 'Meta', windows: 'Meta', cmd: 'Meta', command: 'Meta' };
+    const norm = (x) => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f.]/g, '');
+    const parts = t.split(/\s*\+\s*|\s+/).filter(Boolean);
+    const mods = new Set();
+    let key = null;
+    for (const raw of parts) {
+      const m = MODS[norm(raw)];
+      if (m) { mods.add(m); continue; }
+      if (key) return null;
+      if (/^[a-z0-9]$/i.test(raw)) key = raw.toUpperCase();
+      else if (/^f([1-9]|1[0-2])$/i.test(raw)) key = raw.toUpperCase();
+      else if (Object.values(PUNCT).includes(raw)) key = raw;
+      else return null;
+    }
+    if (!key) return null;
+    if (!(mods.has('Ctrl') || mods.has('Alt') || mods.has('Meta')) && !/^F\d/.test(key)) return null;
+    return ['Ctrl', 'Alt', 'Shift', 'Meta'].filter(x => mods.has(x)).concat(key).join('+');
+  }
+
+  /** Valida y guarda una combinación nueva para una acción. */
+  function assignCombo(action, combo) {
+    if (combo === '') {
       setCombo(action, '');
       renderSettings(action.id);
       setStatus(`Atajo de «${action.label}» quitado.`);
-      return;
+      return true;
     }
-    if (!(e.ctrlKey || e.altKey || e.metaKey) && !/^F\d/.test(e.key)) return; // teclas sueltas: sin efecto
-    e.preventDefault();
-    const combo = comboFromEvent(e);
-    if (!combo) { setStatus('Esa tecla no se puede usar. Prueba con una letra, un número o una tecla F.'); return; }
-    if (RESERVED.has(combo)) { setStatus(`${combo} ya lo usa el navegador o la app. Prueba otra combinación.`); return; }
+    if (RESERVED.has(combo)) { setStatus(`${combo} ya lo usa el navegador o la app. Prueba otra combinación.`); return false; }
     const other = comboIndex.get(combo);
     if (other && other !== action.id) {
       const o = allActions().find(x => x.id === other);
       setStatus(`${combo} ya está asignado a «${o ? o.label : other}». Quítalo allí primero.`);
-      return;
+      return false;
     }
     setCombo(action, combo);
     renderSettings(action.id);
     setStatus(`«${action.label}»: ${combo}`);
+    return true;
+  }
+
+  function onCaptureKey(e, action) {
+    const input = e.target;
+    if (['Tab', 'Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+    if (e.key === 'Escape') { input.value = input.dataset.shown || ''; return; }
+    if (e.key === 'Enter') {
+      e.preventDefault(); // no enviar el formulario de Ajustes
+      const typed = input.value.trim();
+      if (typed === 'Sin atajo') return;
+      const combo = parseCombo(typed);
+      if (combo === null) { setStatus('No entiendo «' + typed + '». Escribe algo como Alt+Shift+G o Ctrl+Alt+7.'); return; }
+      assignCombo(action, combo);
+      return;
+    }
+    // Combinación pulsada directamente
+    if (!(e.ctrlKey || e.altKey || e.metaKey) && !/^F\d/.test(e.key)) return; // texto normal: se escribe en el campo
+    e.preventDefault();
+    const combo = comboFromEvent(e);
+    if (!combo) { setStatus('Esa tecla no se puede usar. Prueba con una letra, un número o una tecla F.'); return; }
+    assignCombo(action, combo);
   }
 
   function buildCustomForm() {
@@ -560,7 +603,7 @@
   }
   function safeInit() { try { init(); } catch (e) { console.warn('[Atajos] No se pudo iniciar:', e); } }
 
-  const api = { findReferences, pickReference, wordAt, comboFromEvent, toAriaShortcut, resolveTarget, richInfo, selectRich };
+  const api = { findReferences, pickReference, wordAt, comboFromEvent, parseCombo, toAriaShortcut, resolveTarget, richInfo, selectRich };
   if (typeof window !== 'undefined') window.EPShortcuts = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 
