@@ -25,9 +25,9 @@
   //  editorOnly: solo funciona con el cursor dentro del apunte.
   // ======================================================================
   const BUILTIN_ACTIONS = [
-    { id: 'scripture', format: 'scripture', group: 'Biblia y búsquedas', label: 'Insertar versículo', def: 'Ctrl+t', editorOnly: true, run: runScripture },
-    { id: 'wol-es', group: 'Biblia y búsquedas', label: 'Buscar en la WOL (español)', def: 'Ctrl+w+s', run: (ctx) => runWol(ctx, 'es') },
-    { id: 'wol-en', group: 'Biblia y búsquedas', label: 'Buscar en la WOL (inglés)', def: 'Ctrl+w+e', run: (ctx) => runWol(ctx, 'en') },
+    { id: 'scripture', format: 'scripture', group: 'Biblia y búsquedas', label: 'Insertar versículo', def: 'Alt+t', editorOnly: true, run: runScripture },
+    { id: 'wol-es', group: 'Biblia y búsquedas', label: 'Buscar en la WOL (español)', def: 'Alt+w+s', run: (ctx) => runWol(ctx, 'es') },
+    { id: 'wol-en', group: 'Biblia y búsquedas', label: 'Buscar en la WOL (inglés)', def: 'Alt+w+e', run: (ctx) => runWol(ctx, 'en') },
     { id: 'wol-panel', group: 'Biblia y búsquedas', label: 'Abrir o cerrar el panel WOL y Copilot', def: 'Alt+Shift+P', run: () => { const w = window.WolAssistant; if (w) w.togglePanel(); } },
 
     fmt('bold', 'Negrita', 'Ctrl+B'),
