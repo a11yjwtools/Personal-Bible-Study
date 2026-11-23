@@ -4,7 +4,7 @@
 // aunque no haya Internet. Los datos NO pasan por aquí: viven en
 // IndexedDB (js/offline.js) y se sincronizan con tu repositorio de GitHub.
 // ==========================================================================
-const VERSION = 'v3.5.2';
+const VERSION = 'v3.6.0';
 const SHELL_CACHE = `ep-shell-${VERSION}`;
 const RUNTIME_CACHE = 'ep-runtime-v1';
 
@@ -22,6 +22,7 @@ const SHELL = [
   'js/game.js',
   'js/notes.js',
   'js/wol-assistant.js',
+  'js/shortcuts.js',
   'css/wol-assistant.css',
   'icons/icon.svg',
   'icons/icon-192.png',
