@@ -4438,7 +4438,8 @@
     fetchNotes,
     switchToTab,
     openSearchModal,
-    openNewDayPrompt
+    openNewDayPrompt,
+    applyTextFormat
   };
 
 })();

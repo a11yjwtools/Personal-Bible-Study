@@ -76,6 +76,7 @@
     setStatus(ok
       ? (lang === 'en' ? 'Opened the WOL in English beside your notes.' : 'WOL abierta en español al lado de tu apunte.')
       : 'El navegador bloqueó la ventana. Permite las ventanas emergentes para esta página.', ok ? 'ok' : 'error');
+    return ok;
   }
 
   // ---------- Copilot ----------
@@ -206,6 +207,15 @@
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     if (open) setTimeout(() => (panel.querySelector('.wolp-tab.active').dataset.tab === 'wol' ? wolInput : cpText).focus(), 60);
   }
+
+  // ---------- API para los atajos de teclado (shortcuts.js) ----------
+  function searchText(text, lang) {
+    if (!wolInput) return false;
+    wolInput.value = String(text || '').slice(0, 300);
+    return searchWol(lang === 'en' ? 'en' : 'es');
+  }
+  function openPanel() { if (panel && !panel.classList.contains('open')) togglePanel(); }
+  window.WolAssistant = { searchText, openPanel, togglePanel: () => { if (panel) togglePanel(); } };
 
   // ---------- inicio ----------
   function init() {
