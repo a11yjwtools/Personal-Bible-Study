@@ -478,6 +478,7 @@
     input.dataset.shown = input.value;
     input.addEventListener('keydown', (e) => onCaptureKey(e, a));
     input.addEventListener('focus', () => { try { input.select(); } catch (e) {} });
+    input.addEventListener('change', () => commitTyped(a, input, true));
     row.appendChild(input);
 
     const rm = mk('button', { type: 'button', class: 'btn-ghost btn-sm', 'aria-label': `Quitar el atajo de ${a.label}` }, 'Quitar');
@@ -524,24 +525,59 @@
   }
 
   /** Valida y guarda una combinación nueva para una acción. */
-  function assignCombo(action, combo) {
+  function assignCombo(action, combo, opts) {
+    const focusId = opts && opts.quiet ? undefined : action.id;
+    const draw = () => { if (!(opts && opts.noRender)) renderSettings(focusId); };
+    const fail = (msg) => { setStatus(msg); announce(msg); return false; };
     if (combo === '') {
       setCombo(action, '');
-      renderSettings(action.id);
+      draw();
       setStatus(`Atajo de «${action.label}» quitado.`);
+      announce(`Atajo de ${action.label} quitado.`);
       return true;
     }
-    if (RESERVED.has(combo)) { setStatus(`${combo} ya lo usa el navegador o la app. Prueba otra combinación.`); return false; }
+    if (RESERVED.has(combo)) return fail(`${combo} ya lo usa el navegador o la app. Prueba otra combinación.`);
     const other = comboIndex.get(combo);
     if (other && other !== action.id) {
       const o = allActions().find(x => x.id === other);
-      setStatus(`${combo} ya está asignado a «${o ? o.label : other}». Quítalo allí primero.`);
-      return false;
+      return fail(`${combo} ya está asignado a «${o ? o.label : other}». Quítalo allí primero.`);
     }
     setCombo(action, combo);
-    renderSettings(action.id);
+    draw();
     setStatus(`«${action.label}»: ${combo}`);
+    announce(`Atajo guardado: ${action.label}, ${combo}.`);
     return true;
+  }
+
+  /** Guarda lo que haya escrito en un campo (al salir de él o al guardar Ajustes). */
+  function commitTyped(action, input, quiet) {
+    if (!input.isConnected) return;
+    const typed = input.value.trim();
+    if (typed === (input.dataset.shown || '') || typed === 'Sin atajo') return;
+    const combo = parseCombo(typed);
+    if (combo === null) {
+      const msg = `No entiendo «${typed}» para ${action.label}. Escribe algo como Alt+Shift+G.`;
+      setStatus(msg); announce(msg);
+      return;
+    }
+    assignCombo(action, combo, { quiet });
+  }
+
+  /** Guarda todos los campos con texto escrito y sin confirmar. */
+  function commitPending() {
+    const root = document.getElementById('shortcutsSettings');
+    if (!root) return;
+    const pending = [...root.querySelectorAll('.sc-input')]
+      .filter(i => i.value.trim() !== (i.dataset.shown || '') && i.value.trim() !== 'Sin atajo')
+      .map(i => ({ action: allActions().find(a => 'sc-in-' + a.id === i.id), typed: i.value.trim() }))
+      .filter(x => x.action);
+    if (!pending.length) return;
+    pending.forEach(({ action, typed }) => {
+      const combo = parseCombo(typed);
+      if (combo === null) { const msg = `No entiendo «${typed}» para ${action.label}.`; setStatus(msg); announce(msg); return; }
+      assignCombo(action, combo, { quiet: true, noRender: true });
+    });
+    renderSettings();
   }
 
   function onCaptureKey(e, action) {
@@ -597,6 +633,8 @@
     window.addEventListener('keydown', onKeyDown, true);
     updateHints();
     renderSettings();
+    const form = document.getElementById('configForm');
+    if (form) form.addEventListener('submit', commitPending, true); // antes de que Ajustes se cierre
     const cfg = document.getElementById('configModal');
     if (cfg) new MutationObserver(() => { if (cfg.classList.contains('active')) renderSettings(); })
       .observe(cfg, { attributes: true, attributeFilter: ['class'] });
